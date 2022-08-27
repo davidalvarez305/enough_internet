@@ -8,6 +8,7 @@ from os import listdir
 import subprocess
 from youtube import upload
 from dotenv import load_dotenv
+import ffmpeg
 
 
 def main():
@@ -30,7 +31,7 @@ def main():
     print("Downloading videos...")
 
     resp = opener.open(
-        'https://www.reddit.com/r/funnyvideos/top/.json?limit=5').read().decode("utf-8")
+        'https://www.reddit.com/r/funnyvideos/top/.json?limit=15').read().decode("utf-8")
 
     posts = json.loads(resp)
 
@@ -46,7 +47,7 @@ def main():
     for file in files:
         if ".mp4" in file:
             file_name = "output_" + file
-            subprocess.run(f"ffmpeg -i {file} -lavfi '[0:v]scale=ih*16/9:-1,boxblur=luma_radius=min(h\,w)/20:luma_power=1:chroma_radius=min(cw\,ch)/20:chroma_power=1[bg];[bg][0:v]overlay=(W-w)/2:(H-h)/2,crop=h=iw*9/16' -vb 800K {file_name}",
+            subprocess.run(f"ffmpeg -i {file} -lavfi '[0:v]scale=ih*16/9:-1:force_original_aspect_ratio=decrease,pad=1280:720:-1:-1:color=black,boxblur=luma_radius=min(h\,w)/20:luma_power=1:chroma_radius=min(cw\,ch)/20:chroma_power=1[bg];[bg][0:v]overlay=(W-w)/2:(H-h)/2,crop=h=iw*9/16' -vb 800K {file_name}",
                            shell=True,
                            check=True, text=True)
 
@@ -65,6 +66,12 @@ def main():
                    check=True, text=True)
 
     upload("final.mp4")
+
+    print("Deleting files...")
+    del_files = listdir()
+    for df in del_files:
+        if ".mp4" in df or ".txt" in df:
+            os.remove(df)
 
 
 main()

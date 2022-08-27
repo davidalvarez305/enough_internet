@@ -8,7 +8,7 @@ import auth
 scopes = ["https://www.googleapis.com/auth/youtube.upload"]
 
 
-def upload():
+def upload(path):
     print("Uploading Video...")
     # Disable OAuthlib's HTTPS verification when running locally.
     # *DO NOT* leave this option enabled in production.
@@ -31,7 +31,7 @@ def upload():
                 "privacyStatus": "private"
             }
         },
-        media_body=MediaFileUpload("final.mp4")
+        media_body=MediaFileUpload(path)
     )
     response = request.execute()
 
