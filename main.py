@@ -6,13 +6,16 @@ from urllib import request
 import os
 from os import listdir
 import subprocess
+from youtube import upload
+from dotenv import load_dotenv
 
 
 def main():
+    load_dotenv()
     ssl._create_default_https_context = ssl._create_unverified_context
     username = os.environ.get('P_USER')
     password = os.environ.get('P_PASSWORD')
-    port = os.environ.get('P_PORT')
+    port = int(os.environ.get('P_PORT'))
     url = os.environ.get('P_URL')
     session_id = random.random()
     super_proxy_url = ('http://%s-country-us-session-%s:%s@%s:%d' %
@@ -23,6 +26,8 @@ def main():
     })
 
     opener = request.build_opener(proxy_handler)
+
+    print("Downloading videos...")
 
     resp = opener.open(
         'https://www.reddit.com/r/funnyvideos/top/.json?limit=5').read().decode("utf-8")
@@ -37,6 +42,7 @@ def main():
 
     files = listdir()
 
+    print("Adjusting video background...")
     for file in files:
         if ".mp4" in file:
             file_name = "output_" + file
@@ -53,8 +59,12 @@ def main():
     with open('videos.txt', 'w') as f:
         f.write('\n'.join(files_to_join))
 
+    print("Creating final video...")
+
     subprocess.run(f"ffmpeg -f concat -safe 0 -i videos.txt final.mp4", shell=True,
                    check=True, text=True)
+
+    upload("final.mp4")
 
 
 main()
