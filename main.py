@@ -31,7 +31,7 @@ def main():
     print("Downloading videos...")
 
     resp = opener.open(
-        'https://www.reddit.com/r/funnyvideos/top/.json?limit=3').read().decode("utf-8")
+        'https://www.reddit.com/r/funnyvideos/top/.json?limit=2').read().decode("utf-8")
 
     posts = json.loads(resp)
 
@@ -62,7 +62,7 @@ def main():
 
     print("Creating final video...")
 
-    subprocess.run(f"ffmpeg -f concat -safe 0 -i videos.txt final.mp4", shell=True,
+    subprocess.run(f"ffmpeg -f concat -safe 0 -i videos.txt -c:v libx265 -vtag hvc1 -vf scale=1920:1080 -crf 20 -c:a copy final.mp4", shell=True,
                    check=True, text=True)
 
     upload("final.mp4")
