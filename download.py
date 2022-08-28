@@ -26,8 +26,6 @@ def download(video):
 
     opener = request.build_opener(proxy_handler)
 
-    print("Downloading videos...")
-
     source_url = video['source'] + "?limit=" + video['limit']
 
     resp = opener.open(source_url).read().decode("utf-8")
@@ -42,7 +40,6 @@ def download(video):
 
     files = listdir()
 
-    print("Adjusting video background...")
     for file in files:
         if ".mp4" in file:
             file_name = "output_" + file
