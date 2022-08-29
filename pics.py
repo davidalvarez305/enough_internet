@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 from wand.image import Image
 from wand.drawing import Drawing
 from wand.color import Color
+from mutagen.mp3 import MP3
 
 
 def get_pics():
@@ -75,14 +76,19 @@ def get_pics():
                     draw(image)
                     image.save(filename=img_path)
 
-    cmd = 'cat *.jpg | ffmpeg -framerate 0.25 -f image2pipe -i - pics.mp4'
+    num_images = 0
+    for f in listdir():
+        if ".jpg" in f:
+            num_images += 1
+    audio_length = MP3('song.mp3').info.length
+    frame_rate = num_images / audio_length
+    cmd = f"cat *.jpg | ffmpeg -framerate {frame_rate} -f image2pipe -i - -i song.mp3 -acodec copy -vf scale=1080:-2 pics.mp4"
     subprocess.run(cmd, shell=True, check=True, text=True)
 
     del_files = listdir()
     for df in del_files:
         if ".jpg" in df or ".txt" in df:
             os.remove(df)
-            print('yo')
 
 
 get_pics()
