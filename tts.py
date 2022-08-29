@@ -48,13 +48,18 @@ def tts():
                 audio_file = gTTS(top_level_comment.body)
                 audio_path = "post" + str(index) + ".mp3"
                 video_output = "post" + str(index) + ".mp4"
+                post_text = "post" + str(index) + ".txt"
                 audio_file.save(audio_path)
                 audio_length = MP3(audio_path).info.length
+
+                with open(post_text, 'w') as f:
+                    f.write(top_level_comment.body)
+
                 try:
                     subprocess.run(
                         f"""ffmpeg -y -f lavfi -i color=size=1920x1080:duration={audio_length}:rate=25:color=cyan \
                         -i {audio_path} -acodec copy \
-                        -vf "drawtext=fontfile=Roboto-Bold.ttf:fontsize=80:fontcolor=black:x=(w-text_w)/2:y=(h-text_h)/2:text={top_level_comment.body}" \
+                        -vf "drawtext=fontfile=Roboto-Bold.ttf:fontsize=80:fontcolor=black:x=(w-text_w)/2:y=(h-text_h)/2:textfile={post_text}" \
                         {video_output}""", shell=True, check=True, text=True)
                     comments.append(comment)
                 except BaseException as err:
