@@ -1,9 +1,6 @@
 import json
-import random
 import re
-import ssl
 import subprocess
-from urllib import request
 import os
 from os import listdir
 import requests
@@ -11,29 +8,15 @@ from wand.image import Image
 from wand.drawing import Drawing
 from wand.color import Color
 from mutagen.mp3 import MP3
+from make_request import make_request
 from youtube import upload
 from pathlib import Path
 
 
 def get_pics(video):
-    ssl._create_default_https_context = ssl._create_unverified_context
-    username = os.environ.get('P_USER')
-    password = os.environ.get('P_PASSWORD')
-    port = int(os.environ.get('P_PORT'))
-    url = os.environ.get('P_URL')
-    session_id = random.random()
-    super_proxy_url = ('http://%s-country-us-session-%s:%s@%s:%d' %
-                       (username, session_id, password, url, port))
-    proxy_handler = request.ProxyHandler({
-        'http': super_proxy_url,
-        'https': super_proxy_url,
-    })
-
-    opener = request.build_opener(proxy_handler)
-
     source_url = video['source'] + "?limit=" + str(video['limit'])
 
-    resp = opener.open(source_url).read().decode("utf-8")
+    resp = make_request(source_url)
 
     posts = json.loads(resp)
 
