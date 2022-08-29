@@ -94,7 +94,6 @@ def get_pics(video):
         desc = video['body']['snippet']['description'] + \
             "\n" + ",".join(users)
         video['body']['snippet']['description'] = desc
-        print(video)
         upload(vid_name, video['body'])
 
         os.replace(vid_name, str(Path.home()) + "/vids/" + vid_name)
