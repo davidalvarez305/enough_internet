@@ -12,7 +12,7 @@ def main():
 
     for index, video in enumerate(data):
         part = video['count'] + 1
-        video['title'] = video['title'] + " part " + part
+        video['body']['snippet']['title'] = video['body']['snippet']['title'] + " part " + part
         if "weight loss motivation" in video['series']:
             get_pics(video)
         else:
