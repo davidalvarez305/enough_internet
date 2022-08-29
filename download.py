@@ -33,7 +33,7 @@ def download(video):
     posts = json.loads(resp)
 
     for post in posts['data']['children']:
-        if post['data']['secure_media']:
+        if 'reddit_video' in post['data']['secure_media']:
             download_link = post['data']['secure_media']['reddit_video']['fallback_url']
             with youtube_dl.YoutubeDL() as ydl:
                 ydl.download([download_link])
