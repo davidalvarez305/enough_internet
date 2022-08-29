@@ -87,11 +87,16 @@ def get_pics(video):
     cmd = f"cat *.jpg | ffmpeg -framerate {frame_rate} -f image2pipe -i - -i song.mp3 -acodec copy -vf scale=1080:-2 {vid_name}"
     subprocess.run(cmd, shell=True, check=True, text=True)
 
-    upload(vid_name, video['body'])
+    try:
+        upload(vid_name, video['body'])
 
-    os.replace(vid_name, str(Path.home()) + "/vids/" + vid_name)
+        os.replace(vid_name, str(Path.home()) + "/vids/" + vid_name)
 
-    del_files = listdir()
-    for df in del_files:
-        if ".jpg" in df or ".txt" in df or ".mp4" in df:
-            os.remove(df)
+        del_files = listdir()
+        for df in del_files:
+            if ".jpg" in df or ".txt" in df or ".mp4" in df:
+                os.remove(df)
+
+    except BaseException as err:
+        os.replace(vid_name, str(Path.home()) + "/vids/" + vid_name)
+        raise Exception("Video upload failed: ", err)
