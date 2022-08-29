@@ -31,7 +31,7 @@ def get_pics(video):
 
     opener = request.build_opener(proxy_handler)
 
-    source_url = video['source'] + "?limit=" + video['limit']
+    source_url = video['source'] + "?limit=" + str(video['limit'])
 
     resp = opener.open(source_url).read().decode("utf-8")
 
