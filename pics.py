@@ -37,6 +37,8 @@ def get_pics(video):
 
     posts = json.loads(resp)
 
+    users = []
+
     for post in posts['data']['children']:
         if ".jpg" in post['data']['url'] and "nsfw" not in post['data']['thumbnail']:
             img_data = requests.get(post['data']['url']).content
@@ -75,6 +77,7 @@ def get_pics(video):
                     draw.text(width, height, img_text)
                     draw(image)
                     image.save(filename=img_path)
+                    users.append(post['data']['author'])
 
     num_images = 0
     for f in listdir():
@@ -88,6 +91,10 @@ def get_pics(video):
     subprocess.run(cmd, shell=True, check=True, text=True)
 
     try:
+        desc = video['body']['snippet']['description'] + \
+            "\n" + ",".join(users)
+        video['body']['snippet']['description'] = desc
+        print(video)
         upload(vid_name, video['body'])
 
         os.replace(vid_name, str(Path.home()) + "/vids/" + vid_name)
