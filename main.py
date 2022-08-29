@@ -18,6 +18,9 @@ def main():
         if "weight loss" in video['series']:
             try:
                 get_pics(video)
+                data[index]['count'] = part
+                with open("vids.json", "w") as f:
+                    json.dump(data, f, indent=4)
             except BaseException as err:
                 print(f"Unexpected {err=}, {type(err)=}")
                 del_files = os.listdir()
@@ -27,14 +30,15 @@ def main():
         else:
             try:
                 download(video)
+                data[index]['count'] = part
+                with open("vids.json", "w") as f:
+                    json.dump(data, f, indent=4)
             except BaseException as err:
+                print(f"Unexpected {err=}, {type(err)=}")
                 del_files = os.listdir()
                 for df in del_files:
                     if ".mp4" in df or ".txt" in df:
                         os.remove(df)
-        data[index]['count'] = part
-        with open("vids.json", "w") as f:
-            json.dump(data, f, indent=4)
 
 
 main()
