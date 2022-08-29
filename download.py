@@ -56,7 +56,7 @@ def download(video):
     with open('videos.txt', 'w') as f:
         f.write('\n'.join(files_to_join))
 
-    vid_name = video['title'].replace(" ", "_") + ".mp4"
+    vid_name = video['body']['snippet']['title'].replace(" ", "_") + ".mp4"
 
     subprocess.run(f"ffmpeg -f concat -safe 0 -i videos.txt -c:v libx265 -vtag hvc1 -vf scale=1920:1080 -crf 20 -c:a copy {vid_name}", shell=True,
                    check=True, text=True)

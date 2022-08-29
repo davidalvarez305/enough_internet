@@ -85,7 +85,7 @@ def get_pics(video):
     cmd = f"cat *.jpg | ffmpeg -framerate {frame_rate} -f image2pipe -i - -i song.mp3 -acodec copy -vf scale=1080:-2 pics.mp4"
     subprocess.run(cmd, shell=True, check=True, text=True)
 
-    vid_name = video['title'].replace(" ", "_") + ".mp4"
+    vid_name = video['body']['snippet']['title'].replace(" ", "_") + ".mp4"
 
     upload(vid_name, video['body'])
 
