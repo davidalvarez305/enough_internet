@@ -82,10 +82,10 @@ def get_pics(video):
             num_images += 1
     audio_length = MP3('song.mp3').info.length
     frame_rate = num_images / audio_length
-    cmd = f"cat *.jpg | ffmpeg -framerate {frame_rate} -f image2pipe -i - -i song.mp3 -acodec copy -vf scale=1080:-2 pics.mp4"
-    subprocess.run(cmd, shell=True, check=True, text=True)
-
     vid_name = video['body']['snippet']['title'].replace(" ", "_") + ".mp4"
+
+    cmd = f"cat *.jpg | ffmpeg -framerate {frame_rate} -f image2pipe -i - -i song.mp3 -acodec copy -vf scale=1080:-2 {vid_name}"
+    subprocess.run(cmd, shell=True, check=True, text=True)
 
     upload(vid_name, video['body'])
 
