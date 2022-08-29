@@ -1,4 +1,6 @@
 *.mp4
 *.json
 *.env
+*.ttf
+*.mp3
 __pycache__
