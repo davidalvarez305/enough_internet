@@ -7,15 +7,15 @@ from urllib import request
 import os
 from os import listdir
 import requests
-from dotenv import load_dotenv
 from wand.image import Image
 from wand.drawing import Drawing
 from wand.color import Color
 from mutagen.mp3 import MP3
+from youtube import upload
+from pathlib import Path
 
 
-def get_pics():
-    load_dotenv()
+def get_pics(video):
     ssl._create_default_https_context = ssl._create_unverified_context
     username = os.environ.get('P_USER')
     password = os.environ.get('P_PASSWORD')
@@ -31,7 +31,7 @@ def get_pics():
 
     opener = request.build_opener(proxy_handler)
 
-    source_url = "https://www.reddit.com/r/progresspics/top/.json?limit=25"
+    source_url = video['source'] + "?limit=" + video['limit']
 
     resp = opener.open(source_url).read().decode("utf-8")
 
@@ -85,10 +85,13 @@ def get_pics():
     cmd = f"cat *.jpg | ffmpeg -framerate {frame_rate} -f image2pipe -i - -i song.mp3 -acodec copy -vf scale=1080:-2 pics.mp4"
     subprocess.run(cmd, shell=True, check=True, text=True)
 
+    vid_name = video['title'].replace(" ", "_") + ".mp4"
+
+    upload(vid_name, video['body'])
+
+    os.replace(vid_name, str(Path.home()) + "/vids/" + vid_name)
+
     del_files = listdir()
     for df in del_files:
-        if ".jpg" in df or ".txt" in df:
+        if ".jpg" in df or ".txt" in df or ".mp4" in df:
             os.remove(df)
-
-
-get_pics()

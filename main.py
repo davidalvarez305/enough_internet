@@ -1,6 +1,7 @@
 import json
 from dotenv import load_dotenv
 from download import download
+from pics import get_pics
 
 
 def main():
@@ -12,7 +13,10 @@ def main():
     for index, video in enumerate(data):
         part = video['count'] + 1
         video['title'] = video['title'] + " part " + part
-        download(video)
+        if "weight loss motivation" in video['series']:
+            get_pics(video)
+        else:
+            download(video)
         data[index]['count'] = part
         with open("vids.json", "w") as f:
             json.dump(data, f, indent=4)
