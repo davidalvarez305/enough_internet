@@ -56,7 +56,8 @@ def tts(video):
 
     for post in posts['data']['children']:
 
-        post_author = "\n" + "\n" + "\n" + "by /u/" + post['data']['author']
+        post_author = "\n" + "\n" + "\n" + \
+            "by /u/" + post['data']['author']
 
         users = [post_author]
 
@@ -134,7 +135,7 @@ def tts(video):
 
             del_files = os.listdir()
             for df in del_files:
-                if "post" in df or ".txt" in df or ".mp4" in df:
+                if "post" in df or "title" in df or ".txt" in df or ".mp4" in df:
                     os.remove(df)
 
         except BaseException as err:
