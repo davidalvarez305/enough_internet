@@ -1,13 +1,15 @@
 import json
 from lib2to3.pytree import Base
 import os
+from pathlib import Path
+import re
 from gtts import gTTS
-from dotenv import load_dotenv
 from make_request import make_request
 from praw.models import MoreComments
 import praw
 import subprocess
 import textwrap
+from youtube import upload
 from mutagen.mp3 import MP3
 
 
@@ -24,9 +26,19 @@ def wrap_text(text):
         text, width=75, break_long_words=False, break_on_hyphens=True)
 
 
-def tts():
+def get_username(redditor):
+    if hasattr(redditor, "name"):
+        return redditor.name
+    else:
+        return "Deleted"
 
-    load_dotenv()
+
+def create_video_title(text):
+    m = re.findall(r"[a-zA-Z0-9]+", text)
+    return "_".join(m) + ".mp4"
+
+
+def tts(video):
 
     reddit = praw.Reddit(
         client_id=str(os.environ.get('REDDIT_ID')),
@@ -36,24 +48,26 @@ def tts():
         username=str(os.environ.get('REDDIT_USERNAME')),
     )
 
-    source_url = "https://www.reddit.com/r/AskReddit/top/.json?limit=1"
+    source_url = video['source'] + "?limit=" + str(video['limit'])
 
     resp = make_request(source_url)
 
     posts = json.loads(resp)
 
-    title = posts['data']['children'][0]['data']['title']
-    gTTS(title).save("title.mp3")
-    wrapped_title = wrap_text(title)
-    with open("title.txt", 'w') as f:
-        f.write("\n".join(wrapped_title))
-    create_slide(MP3("title.mp3").info.length, "title.mp3",
-                 "title.txt", "title.mp4")
-
-    comments = []
-
     for post in posts['data']['children']:
-        print('url: ', post['data']['url'])
+
+        post_author = "\n" + "\n" + "\n" + "by /u/" + post['data']['author']
+
+        users = [post_author]
+
+        title = post['data']['title']
+        gTTS(title).save("title.mp3")
+        wrapped_title = wrap_text(title)
+        with open("title.txt", 'w') as f:
+            f.write("\n".join(wrapped_title) + post_author)
+        create_slide(MP3("title.mp3").info.length, "title.mp3",
+                     "title.txt", "title.mp4")
+
         sub = reddit.submission(url=post['data']['url'])
 
         highest_comment_score = 0
@@ -63,9 +77,8 @@ def tts():
             if index == 0:
                 highest_comment_score = top_level_comment.score
             if top_level_comment.score >= highest_comment_score * 0.05:
-                comment = {}
-                comment['body'] = top_level_comment.body
-                comment['score'] = top_level_comment.score
+                comment_author = get_username(top_level_comment.author)
+                users.append(comment_author)
                 audio_file = gTTS(top_level_comment.body)
                 audio_path = "post" + str(index) + ".mp3"
                 audio_file.save(audio_path)
@@ -76,37 +89,54 @@ def tts():
                 wrapped_text = wrap_text(top_level_comment.body)
 
                 with open(text_path, 'w') as f:
-                    f.write("\n".join(wrapped_text))
+                    f.write("\n".join(wrapped_text) + "\n" +
+                            "\n" + "\n" + "by /u/" + comment_author)
 
                 try:
                     create_slide(audio_length, audio_path,
                                  text_path, output_path)
-                    comments.append(comment)
                 except BaseException as err:
                     print(err)
 
-    mp4_files = os.listdir()
-    files_to_join = ["file 'title.mp4'"]
-    for f in mp4_files:
-        if "post" in f and ".mp4" in f:
-            files_to_join.append("file '" + f + "'")
+        mp4_files = os.listdir()
+        files_to_join = ["file 'title.mp4'"]
+        for f in mp4_files:
+            if "post" in f and ".mp4" in f:
+                files_to_join.append("file '" + f + "'")
 
-    with open('videos.txt', 'w') as f:
-        f.write('\n'.join(files_to_join))
+        with open('videos.txt', 'w') as f:
+            f.write('\n'.join(files_to_join))
 
-    vid_name = "final.mp4"
+        video_title = create_video_title(title)
 
-    try:
-        subprocess.run(f"ffmpeg -f concat -safe 0 -i videos.txt -c:v libx265 -vtag hvc1 -vf scale=1920:1080 -crf 20 -c:a copy final.mp4", shell=True,
-                       check=True, text=True)
+        try:
+            subprocess.run(f"ffmpeg -f concat -safe 0 -i videos.txt -c:v libx265 -vtag hvc1 -vf scale=1920:1080 -crf 20 -c:a copy final.mp4", shell=True,
+                           check=True, text=True)
 
-        subprocess.run(
-            '''ffmpeg -i final.mp4 -i upbeat.mp3 -c:v copy \
-            -filter_complex "[0:a]aformat=fltp:44100:stereo,apad[0a];[1]aformat=fltp:44100:stereo,volume=0.05[1a];[0a][1a]amerge[a]" -map 0:v -map "[a]" -ac 2 \
-            audio_final.mp4''', shell=True,
-            check=True, text=True)
-    except BaseException as err:
-        print(err)
+            subprocess.run(
+                f'''ffmpeg -i final.mp4 -i upbeat.mp3 -c:v copy \
+                -filter_complex "[0:a]aformat=fltp:44100:stereo,apad[0a];[1]aformat=fltp:44100:stereo,volume=0.05[1a];[0a][1a]amerge[a]" -map 0:v -map "[a]" -ac 2 \
+                {video_title}''', shell=True,
+                check=True, text=True)
+        except BaseException as err:
+            print(err)
 
+        try:
+            desc = "OC by these users: " + ", ".join(users)
+            title = title + " - /r/" + video['series']
 
-tts()
+            video['body']['snippet']['description'] = desc
+            video['body']['snippet']['title'] = title
+
+            upload(video_title, video['body'])
+
+            os.replace(video_title, str(Path.home()) + "/vids/" + video_title)
+
+            del_files = os.listdir()
+            for df in del_files:
+                if "post" in df or ".txt" in df or ".mp4" in df:
+                    os.remove(df)
+
+        except BaseException as err:
+            os.replace(video_title, str(Path.home()) + "/vids/" + video_title)
+            raise Exception("Video upload failed: ", err)

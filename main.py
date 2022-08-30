@@ -4,6 +4,8 @@ from download import download
 from pics import get_pics
 import os
 
+from tts import tts
+
 
 def main():
     load_dotenv()
@@ -26,6 +28,18 @@ def main():
                 del_files = os.listdir()
                 for df in del_files:
                     if ".jpg" in df or ".txt" in df or ".mp4" in df:
+                        os.remove(df)
+        if "AskReddit" in video['series']:
+            try:
+                tts(video)
+                data[index]['count'] = part
+                with open("vids.json", "w") as f:
+                    json.dump(data, f, indent=4)
+            except BaseException as err:
+                print(f"Unexpected {err=}, {type(err)=}")
+                del_files = os.listdir()
+                for df in del_files:
+                    if "post" in df or ".txt" in df or ".mp4" in df:
                         os.remove(df)
         else:
             try:

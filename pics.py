@@ -75,7 +75,7 @@ def get_pics(video):
 
     try:
         desc = video['body']['snippet']['description'] + \
-            "\n" + ",".join(users)
+            "\n" + ", ".join(users)
         video['body']['snippet']['description'] = desc
         upload(vid_name, video['body'])
 
