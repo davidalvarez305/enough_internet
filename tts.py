@@ -56,8 +56,7 @@ def tts(video):
 
     for post in posts['data']['children']:
 
-        post_author = "\n" + "\n" + "\n" + \
-            "by /u/" + post['data']['author']
+        post_author = "\n" + "\n" + "\n" + "by /u/" + post['data']['author']
 
         users = [post_author]
 
@@ -108,7 +107,7 @@ def tts(video):
         with open('videos.txt', 'w') as f:
             f.write('\n'.join(files_to_join))
 
-        video_title = create_video_title(title)
+        mp4_video_path = create_video_title(title)
 
         try:
             subprocess.run(f"ffmpeg -f concat -safe 0 -i videos.txt -c:v libx265 -vtag hvc1 -vf scale=1920:1080 -crf 20 -c:a copy final.mp4", shell=True,
@@ -117,21 +116,22 @@ def tts(video):
             subprocess.run(
                 f'''ffmpeg -i final.mp4 -i upbeat.mp3 -c:v copy \
                 -filter_complex "[0:a]aformat=fltp:44100:stereo,apad[0a];[1]aformat=fltp:44100:stereo,volume=0.05[1a];[0a][1a]amerge[a]" -map 0:v -map "[a]" -ac 2 \
-                {video_title}''', shell=True,
+                {mp4_video_path}''', shell=True,
                 check=True, text=True)
         except BaseException as err:
             print(err)
 
         try:
             desc = "OC by these users: " + ", ".join(users)
-            title = title + " - /r/" + video['series']
+            youtube_title = title + " - /r/" + video['series']
 
             video['body']['snippet']['description'] = desc
-            video['body']['snippet']['title'] = title
+            video['body']['snippet']['title'] = youtube_title
 
-            upload(video_title, video['body'])
+            upload(mp4_video_path, video['body'])
 
-            os.replace(video_title, str(Path.home()) + "/vids/" + video_title)
+            os.replace(mp4_video_path, str(Path.home()) +
+                       "/vids/" + mp4_video_path)
 
             del_files = os.listdir()
             for df in del_files:
@@ -139,5 +139,10 @@ def tts(video):
                     os.remove(df)
 
         except BaseException as err:
-            os.replace(video_title, str(Path.home()) + "/vids/" + video_title)
-            raise Exception("Video upload failed: ", err)
+            os.replace(mp4_video_path, str(Path.home()) +
+                       "/vids/" + mp4_video_path)
+
+            del_files = os.listdir()
+            for df in del_files:
+                if "post" in df or "title" in df or ".txt" in df or ".mp4" in df:
+                    os.remove(df)

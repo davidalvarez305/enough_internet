@@ -74,8 +74,7 @@ def get_pics(video):
     subprocess.run(cmd, shell=True, check=True, text=True)
 
     try:
-        desc = video['body']['snippet']['description'] + \
-            "\n" + ", ".join(users)
+        desc = video['body']['snippet']['description'] + ", ".join(users)
         video['body']['snippet']['description'] = desc
         upload(vid_name, video['body'])
 

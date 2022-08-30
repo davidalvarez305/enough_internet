@@ -9,7 +9,6 @@ scopes = ["https://www.googleapis.com/auth/youtube.upload"]
 
 
 def upload(path, body):
-    print("Uploading Video...")
     # Disable OAuthlib's HTTPS verification when running locally.
     # *DO NOT* leave this option enabled in production.
     os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"

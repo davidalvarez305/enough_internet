@@ -5,7 +5,6 @@ from oauth2client.client import OAuth2Credentials
 
 
 def get_auth():
-    print("Obtaining credentials...")
     f = open(str(os.environ.get('SECRETS_FILE')))
     data = json.load(f)
 
