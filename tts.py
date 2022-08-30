@@ -7,10 +7,25 @@ from make_request import make_request
 from praw.models import MoreComments
 import praw
 import subprocess
+import textwrap
 from mutagen.mp3 import MP3
 
 
+def create_slide(audio_length, audio_path, text_path, output_path):
+    subprocess.run(
+        f"""ffmpeg -y -f lavfi -i color=size=1920x1080:duration={audio_length}:rate=25:color=cyan \
+        -i {audio_path} -acodec copy \
+        -vf "drawtext=fontfile=Roboto-Bold.ttf:fontsize=50:fontcolor=black:x=(w-text_w)/2:y=(h-text_h)/2:textfile={text_path}" \
+        {output_path}""", shell=True, check=True, text=True)
+
+
+def wrap_text(text):
+    return textwrap.wrap(
+        text, width=75, break_long_words=False, break_on_hyphens=True)
+
+
 def tts():
+
     load_dotenv()
 
     reddit = praw.Reddit(
@@ -28,6 +43,12 @@ def tts():
     posts = json.loads(resp)
 
     title = posts['data']['children'][0]['data']['title']
+    gTTS(title).save("title.mp3")
+    wrapped_title = wrap_text(title)
+    with open("title.txt", 'w') as f:
+        f.write("\n".join(wrapped_title))
+    create_slide(MP3("title.mp3").info.length, "title.mp3",
+                 "title.txt", "title.mp4")
 
     comments = []
 
@@ -47,23 +68,45 @@ def tts():
                 comment['score'] = top_level_comment.score
                 audio_file = gTTS(top_level_comment.body)
                 audio_path = "post" + str(index) + ".mp3"
-                video_output = "post" + str(index) + ".mp4"
-                post_text = "post" + str(index) + ".txt"
                 audio_file.save(audio_path)
+                output_path = "post" + str(index) + ".mp4"
+                text_path = "post" + str(index) + ".txt"
                 audio_length = MP3(audio_path).info.length
 
-                with open(post_text, 'w') as f:
-                    f.write(top_level_comment.body)
+                wrapped_text = wrap_text(top_level_comment.body)
+
+                with open(text_path, 'w') as f:
+                    f.write("\n".join(wrapped_text))
 
                 try:
-                    subprocess.run(
-                        f"""ffmpeg -y -f lavfi -i color=size=1920x1080:duration={audio_length}:rate=25:color=cyan \
-                        -i {audio_path} -acodec copy \
-                        -vf "drawtext=fontfile=Roboto-Bold.ttf:fontsize=80:fontcolor=black:x=(w-text_w)/2:y=(h-text_h)/2:textfile={post_text}" \
-                        {video_output}""", shell=True, check=True, text=True)
+                    create_slide(audio_length, audio_path,
+                                 text_path, output_path)
                     comments.append(comment)
                 except BaseException as err:
                     print(err)
+
+    mp4_files = os.listdir()
+    files_to_join = ["file 'title.mp4'"]
+    for f in mp4_files:
+        if "post" in f and ".mp4" in f:
+            files_to_join.append("file '" + f + "'")
+
+    with open('videos.txt', 'w') as f:
+        f.write('\n'.join(files_to_join))
+
+    vid_name = "final.mp4"
+
+    try:
+        subprocess.run(f"ffmpeg -f concat -safe 0 -i videos.txt -c:v libx265 -vtag hvc1 -vf scale=1920:1080 -crf 20 -c:a copy final.mp4", shell=True,
+                       check=True, text=True)
+
+        subprocess.run(
+            '''ffmpeg -i final.mp4 -i upbeat.mp3 -c:v copy \
+            -filter_complex "[0:a]aformat=fltp:44100:stereo,apad[0a];[1]aformat=fltp:44100:stereo,volume=0.05[1a];[0a][1a]amerge[a]" -map 0:v -map "[a]" -ac 2 \
+            audio_final.mp4''', shell=True,
+            check=True, text=True)
+    except BaseException as err:
+        print(err)
 
 
 tts()
