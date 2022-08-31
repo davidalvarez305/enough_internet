@@ -46,9 +46,10 @@ def download(video):
 
     vid_name = video['body']['snippet']['title'].replace(" ", "_") + ".mp4"
 
-    subprocess.run(f"ffmpeg -f concat -safe 0 -i videos.txt -c:v libx265 -vtag hvc1 -vf scale=1920:1080 -crf 20 -c:a copy {vid_name}", shell=True,
-                   check=True, text=True)
     try:
+        subprocess.run(f"ffmpeg -f concat -safe 0 -i videos.txt -c:v libx265 -vtag hvc1 -vf scale=1920:1080 -crf 20 -c:a copy {vid_name}", shell=True,
+                       check=True, text=True)
+
         upload(vid_name, video['body'])
 
         os.replace(vid_name, str(Path.home()) + "/vids/" + vid_name)

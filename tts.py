@@ -1,4 +1,3 @@
-from curses.ascii import isupper
 import json
 from lib2to3.pytree import Base
 import os
@@ -23,11 +22,13 @@ def create_slide(audio_length, audio_path, text_path, output_path):
 
 
 def wrap_text(text):
-    if isupper(text):
+    if text.isupper():
+        print(text)
         return textwrap.wrap(
             text, width=50, break_long_words=False, break_on_hyphens=True)
 
     else:
+        print(text)
         return textwrap.wrap(
             text, width=75, break_long_words=False, break_on_hyphens=True)
 
@@ -153,7 +154,12 @@ def tts(video):
                 {mp4_video_path}''', shell=True,
                 check=True, text=True)
         except BaseException as err:
-            print(err)
+            del_files = os.listdir()
+            for df in del_files:
+                if "post" in df or "title" in df or ".txt" in df or ".mp4" in df:
+                    os.remove(df)
+
+            raise Exception("Video creation failed: ", err)
 
         try:
             desc = "OC by these users: " + ", ".join(users)

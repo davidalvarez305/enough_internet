@@ -36,7 +36,7 @@ def main():
                 with open("vids.json", "w") as f:
                     json.dump(data, f, indent=4)
             except BaseException as err:
-                print(f"Unexpected {err=}, {type(err)=}")
+                print(f"Error: {err}")
                 del_files = os.listdir()
                 for df in del_files:
                     if "post" in df or "title" in df or ".txt" in df or ".mp4" in df:
