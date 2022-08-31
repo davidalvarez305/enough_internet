@@ -80,11 +80,11 @@ def get_pics(video):
     for f in listdir():
         if ".jpg" in f:
             num_images += 1
-    audio_length = MP3('song.mp3').info.length
-    frame_rate = num_images / audio_length
-    vid_name = video['body']['snippet']['title'].replace(" ", "_") + ".mp4"
 
     selected_song = select_random_inspiring_song()
+    audio_length = MP3(selected_song).info.length
+    frame_rate = num_images / audio_length
+    vid_name = video['body']['snippet']['title'].replace(" ", "_") + ".mp4"
 
     cmd = f"cat *.jpg | ffmpeg -framerate {frame_rate} -f image2pipe -i - -i {selected_song} -acodec copy -vf scale=1080:-2 {vid_name}"
     subprocess.run(cmd, shell=True, check=True, text=True)

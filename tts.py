@@ -158,8 +158,8 @@ def tts(video):
             for df in del_files:
                 if "post" in df or "title" in df or ".txt" in df or ".mp4" in df:
                     os.remove(df)
-
-            raise Exception("Video creation failed: ", err)
+            print("Video creation failed: ", err)
+            continue
 
         try:
             desc = "OC by these users: " + ", ".join(users)
