@@ -1,4 +1,5 @@
 import json
+from random import randrange
 import re
 import subprocess
 import os
@@ -11,6 +12,19 @@ from mutagen.mp3 import MP3
 from make_request import make_request
 from youtube import upload
 from pathlib import Path
+
+
+def select_random_inspiring_song():
+    files = os.listdir()
+
+    songs = []
+    for f in files:
+        if "inspiring" in f:
+            songs.append(f)
+
+    random_index = randrange(len(songs))
+
+    return songs[random_index]
 
 
 def get_pics(video):
@@ -70,11 +84,13 @@ def get_pics(video):
     frame_rate = num_images / audio_length
     vid_name = video['body']['snippet']['title'].replace(" ", "_") + ".mp4"
 
-    cmd = f"cat *.jpg | ffmpeg -framerate {frame_rate} -f image2pipe -i - -i song.mp3 -acodec copy -vf scale=1080:-2 {vid_name}"
+    selected_song = select_random_inspiring_song()
+
+    cmd = f"cat *.jpg | ffmpeg -framerate {frame_rate} -f image2pipe -i - -i {selected_song} -acodec copy -vf scale=1080:-2 {vid_name}"
     subprocess.run(cmd, shell=True, check=True, text=True)
 
     try:
-        desc = video['body']['snippet']['description'] + ", ".join(users)
+        desc = video['body']['snippet']['description'] + ", \n".join(users)
         video['body']['snippet']['description'] = desc
         upload(vid_name, video['body'])
 

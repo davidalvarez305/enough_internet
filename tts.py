@@ -1,3 +1,4 @@
+from curses.ascii import isupper
 import json
 from lib2to3.pytree import Base
 import os
@@ -22,8 +23,13 @@ def create_slide(audio_length, audio_path, text_path, output_path):
 
 
 def wrap_text(text):
-    return textwrap.wrap(
-        text, width=75, break_long_words=False, break_on_hyphens=True)
+    if isupper(text):
+        return textwrap.wrap(
+            text, width=50, break_long_words=False, break_on_hyphens=True)
+
+    else:
+        return textwrap.wrap(
+            text, width=75, break_long_words=False, break_on_hyphens=True)
 
 
 def get_username(redditor):
@@ -36,6 +42,31 @@ def get_username(redditor):
 def create_video_title(text):
     m = re.findall(r"[a-zA-Z0-9]+", text)
     return "_".join(m) + ".mp4"
+
+
+def get_video_length(video_path):
+    result = subprocess.run(["ffprobe", "-v", "error", "-show_entries",
+                             "format=duration", "-of",
+                             "default=noprint_wrappers=1:nokey=1", video_path],
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.STDOUT)
+    return float(result.stdout)
+
+
+def select_song(video_length):
+    files = os.listdir()
+
+    songs = []
+    for f in files:
+        if ".mp3" in f:
+            songs.append(f)
+
+    for song in songs:
+        song_length = MP3(song).info.length
+        if song_length > video_length:
+            return song_length
+        else:
+            return "10argentina.mp3"
 
 
 def tts(video):
@@ -113,8 +144,11 @@ def tts(video):
             subprocess.run(f"ffmpeg -f concat -safe 0 -i videos.txt -c:v libx265 -vtag hvc1 -vf scale=1920:1080 -crf 20 -c:a copy final.mp4", shell=True,
                            check=True, text=True)
 
+            video_length = get_video_length("final.mp4")
+            selected_song = select_song(video_length)
+
             subprocess.run(
-                f'''ffmpeg -i final.mp4 -i upbeat.mp3 -c:v copy \
+                f'''ffmpeg -i final.mp4 -i {selected_song} -c:v copy \
                 -filter_complex "[0:a]aformat=fltp:44100:stereo,apad[0a];[1]aformat=fltp:44100:stereo,volume=0.05[1a];[0a][1a]amerge[a]" -map 0:v -map "[a]" -ac 2 \
                 {mp4_video_path}''', shell=True,
                 check=True, text=True)
@@ -141,6 +175,8 @@ def tts(video):
         except BaseException as err:
             os.replace(mp4_video_path, str(Path.home()) +
                        "/vids/" + mp4_video_path)
+
+            print("Request failed: ", err)
 
             del_files = os.listdir()
             for df in del_files:
