@@ -2,6 +2,7 @@ import json
 from lib2to3.pytree import Base
 import os
 from pathlib import Path
+from random import randrange
 import re
 from gtts import gTTS
 from make_request import make_request
@@ -11,6 +12,7 @@ import subprocess
 import textwrap
 from youtube import upload
 from mutagen.mp3 import MP3
+import math
 
 
 def create_slide(audio_length, audio_path, text_path, output_path):
@@ -54,7 +56,7 @@ def get_video_length(video_path):
     return float(result.stdout)
 
 
-def select_song(video_length):
+def select_song():
     files = os.listdir()
 
     songs = []
@@ -62,12 +64,27 @@ def select_song(video_length):
         if ".mp3" in f:
             songs.append(f)
 
-    for song in songs:
-        song_length = MP3(song).info.length
-        if song_length > video_length:
-            return song_length
-        else:
-            return "10argentina.mp3"
+    random_index = randrange(len(songs))
+
+    return songs[random_index]
+
+
+def create_looped_audio(audio_path, video_length):
+    audio_length = MP3(audio_path).info.length
+    iterations = math.ceil(video_length/audio_length)
+
+    i = 0
+    while i < iterations:
+        with open("songs.txt", 'w') as f:
+            f.write("file '" + audio_path + "'" + "\n")
+            i += 1
+
+    try:
+        subprocess.run(
+            "ffmpeg -f concat -safe 0 -i songs.txt -c copy post_song.mp3", shell=True,
+            check=True, text=True)
+    except BaseException as err:
+        raise Exception("Concatenation of songs failed: ", err)
 
 
 def tts(video):
@@ -146,10 +163,11 @@ def tts(video):
                            check=True, text=True)
 
             video_length = get_video_length("final.mp4")
-            selected_song = select_song(video_length)
+            selected_song = select_song()
+            create_looped_audio(selected_song, video_length)
 
             subprocess.run(
-                f'''ffmpeg -i final.mp4 -i {selected_song} -c:v copy \
+                f'''ffmpeg -i final.mp4 -i post_song.mp3 -c:v copy \
                 -filter_complex "[0:a]aformat=fltp:44100:stereo,apad[0a];[1]aformat=fltp:44100:stereo,volume=0.05[1a];[0a][1a]amerge[a]" -map 0:v -map "[a]" -ac 2 \
                 {mp4_video_path}''', shell=True,
                 check=True, text=True)

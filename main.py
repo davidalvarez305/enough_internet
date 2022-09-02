@@ -55,4 +55,5 @@ def main():
                         os.remove(df)
 
 
-main()
+if __name__ == "__main__":
+    main()
