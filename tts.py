@@ -75,9 +75,9 @@ def create_looped_audio(audio_path, video_length):
 
     i = 0
     while i < iterations:
-        with open("songs.txt", 'w') as f:
+        with open("songs.txt", 'a') as f:
             f.write("file '" + audio_path + "'" + "\n")
-            i += 1
+        i += 1
 
     try:
         subprocess.run(
