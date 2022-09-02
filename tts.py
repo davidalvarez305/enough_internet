@@ -117,6 +117,15 @@ def tts(video):
         create_slide(MP3("title.mp3").info.length, "title.mp3",
                      "title.txt", "title.mp4")
 
+        if post['data']['subreddit'] == "Jokes":
+            joke = post['data']['selftext']
+            gTTS(joke).save("joke.mp3")
+            wrapped_joke = wrap_text(joke)
+            with open("joke.txt", 'w') as f:
+                f.write("\n".join(wrapped_joke) + post_author)
+            create_slide(MP3("joke.mp3").info.length, "joke.mp3",
+                         "joke.txt", "joke.mp4")
+
         sub = reddit.submission(url=post['data']['url'])
 
         highest_comment_score = 0
@@ -149,6 +158,8 @@ def tts(video):
 
         mp4_files = os.listdir()
         files_to_join = ["file 'title.mp4'"]
+        if post['data']['subreddit'] == "Jokes":
+            files_to_join.append("file 'joke.mp4'")
         for f in mp4_files:
             if "post" in f and ".mp4" in f:
                 files_to_join.append("file '" + f + "'")

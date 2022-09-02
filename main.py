@@ -29,7 +29,7 @@ def main():
                 for df in del_files:
                     if ".jpg" in df or ".txt" in df or ".mp4" in df:
                         os.remove(df)
-        if "AskReddit" in video['series']:
+        if "AskReddit" in video['series'] or "Jokes" in video['series']:
             try:
                 tts(video)
                 data[index]['count'] = part
