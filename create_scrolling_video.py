@@ -66,7 +66,7 @@ def create_scrolling_video(image_output_path, video_output_path, silent_video_ou
             audio_length = MP3(audio_input_path).info.length
             # Create Video Without Scrolling
             subprocess.run(f"""
-                    ffmpeg -framerate {audio_length} -i {image_output_path} {video_output_path}
+                    ffmpeg -t {audio_length} -i {image_output_path} {video_output_path}
                 """, shell=True, check=True, text=True)
 
         # Add silent audio to video
@@ -77,7 +77,7 @@ def create_scrolling_video(image_output_path, video_output_path, silent_video_ou
         # Put together video and TTS audio
         subprocess.run(
             f"""ffmpeg -i {silent_video_output_path} -i {audio_input_path} -c:v copy \
-            -filter_complex "[0:a]aformat=fltp:44100:stereo,apad[0a];[1]aformat=fltp:44100:stereo,volume=0.05[1a];[0a][1a]amerge[a]" \
+            -filter_complex "[0:a]aformat=fltp:44100:stereo,apad[0a];[1]aformat=fltp:44100:stereo,volume=0.75[1a];[0a][1a]amerge[a]" \
             -map 0:v -map "[a]" -ac 2 {final_video_output_path}""", shell=True,
             check=True, text=True)
     except BaseException as err:
