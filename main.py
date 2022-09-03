@@ -5,6 +5,7 @@ from pics import get_pics
 import os
 
 from tts import tts
+from utils import delete_files
 
 
 def main():
@@ -25,10 +26,7 @@ def main():
                     json.dump(data, f, indent=4)
             except BaseException as err:
                 print(f"Unexpected {err=}, {type(err)=}")
-                del_files = os.listdir()
-                for df in del_files:
-                    if ".jpg" in df or ".txt" in df or ".mp4" in df:
-                        os.remove(df)
+                delete_files()
         if "AskReddit" in video['series'] or "Jokes" in video['series']:
             try:
                 tts(video)
@@ -37,10 +35,7 @@ def main():
                     json.dump(data, f, indent=4)
             except BaseException as err:
                 print(f"Error: {err}")
-                del_files = os.listdir()
-                for df in del_files:
-                    if "post" in df or "title" in df or "joke" in df or ".txt" in df or ".mp4" in df:
-                        os.remove(df)
+                delete_files()
         else:
             try:
                 download(video)
@@ -49,10 +44,7 @@ def main():
                     json.dump(data, f, indent=4)
             except BaseException as err:
                 print(f"Unexpected {err=}, {type(err)=}")
-                del_files = os.listdir()
-                for df in del_files:
-                    if ".mp4" in df or ".txt" in df:
-                        os.remove(df)
+                delete_files()
 
 
 if __name__ == "__main__":

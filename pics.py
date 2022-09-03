@@ -10,6 +10,7 @@ from wand.drawing import Drawing
 from wand.color import Color
 from mutagen.mp3 import MP3
 from make_request import make_request
+from utils import delete_files
 from youtube import upload
 from pathlib import Path
 
@@ -96,10 +97,7 @@ def get_pics(video):
 
         os.replace(vid_name, str(Path.home()) + "/vids/" + vid_name)
 
-        del_files = listdir()
-        for df in del_files:
-            if ".jpg" in df or ".txt" in df or ".mp4" in df:
-                os.remove(df)
+        delete_files()
 
     except BaseException as err:
         os.replace(vid_name, str(Path.home()) + "/vids/" + vid_name)

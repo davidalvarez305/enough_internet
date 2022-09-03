@@ -5,7 +5,7 @@ from pathlib import Path
 from random import randrange
 import re
 from gtts import gTTS
-from create_scrolling_video import create_image, create_scrolling_video
+from utils import create_image, create_scrolling_video, delete_files
 from make_request import make_request
 from praw.models import MoreComments
 import praw
@@ -189,10 +189,7 @@ def tts(video):
                 {mp4_video_path}''', shell=True,
                 check=True, text=True)
         except BaseException as err:
-            del_files = os.listdir()
-            for df in del_files:
-                if "post" in df or "title" in df or ".txt" in df or ".mp4" in df:
-                    os.remove(df)
+            delete_files()
             print("Video creation failed: ", err)
             continue
 
@@ -208,18 +205,10 @@ def tts(video):
             os.replace(mp4_video_path, str(Path.home()) +
                        "/vids/" + mp4_video_path)
 
-            del_files = os.listdir()
-            for df in del_files:
-                if "post" in df or "title" in df or ".txt" in df or ".mp4" in df:
-                    os.remove(df)
+            delete_files()
 
         except BaseException as err:
             os.replace(mp4_video_path, str(Path.home()) +
                        "/vids/" + mp4_video_path)
-
             print("Request failed: ", err)
-
-            del_files = os.listdir()
-            for df in del_files:
-                if "post" in df or "title" in df or ".txt" in df or ".mp4" in df:
-                    os.remove(df)
+            delete_files()

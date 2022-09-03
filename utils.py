@@ -1,3 +1,4 @@
+import os
 import subprocess
 from wand.image import Image
 from wand.drawing import Drawing
@@ -82,3 +83,10 @@ def create_scrolling_video(image_output_path, video_output_path, silent_video_ou
             check=True, text=True)
     except BaseException as err:
         print(err)
+
+
+def delete_files():
+    del_files = os.listdir()
+    for df in del_files:
+        if "post" in df or "title" in df or "joke" in df or ".txt" in df or ".mp4" in df or ".png" in df or ".jpg" in df or ".jpg" in df:
+            os.remove(df)

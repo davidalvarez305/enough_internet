@@ -4,6 +4,7 @@ import os
 from os import listdir
 import subprocess
 from make_request import make_request
+from utils import delete_files
 from youtube import upload
 from pathlib import Path
 
@@ -53,10 +54,7 @@ def download(video):
         upload(vid_name, video['body'])
 
         os.replace(vid_name, str(Path.home()) + "/vids/" + vid_name)
-        del_files = listdir()
-        for df in del_files:
-            if ".mp4" in df or ".txt" in df:
-                os.remove(df)
+        delete_files()
 
     except BaseException as err:
         os.replace(vid_name, str(Path.home()) + "/vids/" + vid_name)
