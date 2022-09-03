@@ -52,19 +52,19 @@ def create_image(text_path, img_output_path):
 
 
 def create_scrolling_video(image_output_path, video_output_path, silent_video_output_path, audio_input_path, final_video_output_path, text_path):
+    audio_length = MP3(audio_input_path).info.length
 
     try:
 
         if len(text_path.split("\n")) > 12:
             # Create Silent Video W/ Scrolling
             subprocess.run(f"""
-                    ffmpeg -f lavfi -i color=s=1920x1080:color=lightcyan -loop 1 -t 0.02 \
+                    ffmpeg -f lavfi -i color=s=1920x1080:color=lightcyan -loop 1 -t {audio_length} \
                     -i {image_output_path} -filter_complex \
                     "[1:v]scale=1920:-2,setpts=if(eq(N\,0)\,0\,1+1/0.02/TB),fps=25[fg]; \
                     [0:v][fg]overlay=y=-'t*h*0.005':eof_action=endall,setpts=if(eq(N\,0)\,0\,PTS+2/TB)[v]" -map "[v]" {video_output_path}
                 """, shell=True, check=True, text=True)
         else:
-            audio_length = MP3(audio_input_path).info.length
             # Create Video Without Scrolling
             subprocess.run(f"""
                     ffmpeg -t {audio_length} -i {image_output_path} {video_output_path}
@@ -88,5 +88,5 @@ def create_scrolling_video(image_output_path, video_output_path, silent_video_ou
 def delete_files():
     del_files = os.listdir()
     for df in del_files:
-        if "post" in df or "title" in df or "joke" in df or ".txt" in df or ".mp4" in df or ".png" in df or ".jpg" in df or ".jpg" in df:
+        if "post" in df or "title" in df or "joke" in df or ".txt" in df or ".mp4" in df or ".png" in df or ".jpg" in df:
             os.remove(df)
