@@ -5,6 +5,7 @@ from pathlib import Path
 from random import randrange
 import re
 from gtts import gTTS
+from create_scrolling_video import create_image, create_scrolling_video
 from make_request import make_request
 from praw.models import MoreComments
 import praw
@@ -25,14 +26,12 @@ def create_slide(audio_length, audio_path, text_path, output_path):
 
 def wrap_text(text):
     if text.isupper():
-        print(text)
-        return textwrap.wrap(
-            text, width=50, break_long_words=False, break_on_hyphens=True)
-
-    else:
-        print(text)
         return textwrap.wrap(
             text, width=75, break_long_words=False, break_on_hyphens=True)
+
+    else:
+        return textwrap.wrap(
+            text, width=125, break_long_words=False, break_on_hyphens=True)
 
 
 def get_username(redditor):
@@ -105,7 +104,7 @@ def tts(video):
 
     for post in posts['data']['children']:
 
-        post_author = "\n" + "\n" + "\n" + "by /u/" + post['data']['author']
+        post_author = "\n" + "by /u/" + post['data']['author']
 
         users = [post_author]
 
@@ -114,8 +113,11 @@ def tts(video):
         wrapped_title = wrap_text(title)
         with open("title.txt", 'w') as f:
             f.write("\n".join(wrapped_title) + post_author)
-        create_slide(MP3("title.mp3").info.length, "title.mp3",
-                     "title.txt", "title.mp4")
+
+        # Write text to an image
+        create_image("title.txt", "title.png")
+        create_scrolling_video(
+            "title.png", "title.mp4", "title_silent.mp4", "title.mp3", "title_final.mp4", "title.txt")
 
         if post['data']['subreddit'] == "Jokes":
             joke = post['data']['selftext']
@@ -123,8 +125,9 @@ def tts(video):
             wrapped_joke = wrap_text(joke)
             with open("joke.txt", 'w') as f:
                 f.write("\n".join(wrapped_joke) + post_author)
-            create_slide(MP3("joke.mp3").info.length, "joke.mp3",
-                         "joke.txt", "joke.mp4")
+            create_image("joke.txt", "joke.png")
+            create_scrolling_video(
+                "joke.png", "joke.mp4", "joke_silent.mp4", "joke.mp3", "joke_final.mp4", "joke.txt")
 
         sub = reddit.submission(url=post['data']['url'])
 
@@ -141,27 +144,30 @@ def tts(video):
                 audio_path = "post" + str(index) + ".mp3"
                 audio_file.save(audio_path)
                 output_path = "post" + str(index) + ".mp4"
+                final_output_path = "post" + str(index) + "_final.mp4"
+                silent_output_path = "post" + str(index) + "_silent.mp4"
                 text_path = "post" + str(index) + ".txt"
-                audio_length = MP3(audio_path).info.length
+                img_output_path = "post" + str(index) + ".png"
 
                 wrapped_text = wrap_text(top_level_comment.body)
 
                 with open(text_path, 'w') as f:
-                    f.write("\n".join(wrapped_text) + "\n" +
-                            "\n" + "\n" + "by /u/" + comment_author)
+                    f.write("\n".join(wrapped_text) +
+                            "\n" + "by /u/" + comment_author)
 
                 try:
-                    create_slide(audio_length, audio_path,
-                                 text_path, output_path)
+                    create_image(text_path, img_output_path)
+                    create_scrolling_video(
+                        img_output_path, output_path, silent_output_path, audio_path, final_output_path, text_path)
                 except BaseException as err:
                     print(err)
 
         mp4_files = os.listdir()
-        files_to_join = ["file 'title.mp4'"]
+        files_to_join = ["file 'title_final.mp4'"]
         if post['data']['subreddit'] == "Jokes":
-            files_to_join.append("file 'joke.mp4'")
+            files_to_join.append("file 'joke_final.mp4'")
         for f in mp4_files:
-            if "post" in f and ".mp4" in f:
+            if "post" in f and "_final.mp4" in f:
                 files_to_join.append("file '" + f + "'")
 
         with open('videos.txt', 'w') as f:

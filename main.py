@@ -39,7 +39,7 @@ def main():
                 print(f"Error: {err}")
                 del_files = os.listdir()
                 for df in del_files:
-                    if "post" in df or "title" in df or ".txt" in df or ".mp4" in df:
+                    if "post" in df or "title" in df or "joke" in df or ".txt" in df or ".mp4" in df:
                         os.remove(df)
         else:
             try:
