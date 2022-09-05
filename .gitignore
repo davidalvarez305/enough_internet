@@ -4,4 +4,7 @@
 *.ttf
 *.mp3
 *.txt
+*.png
+*.jpg
+*.jpeg
 __pycache__
