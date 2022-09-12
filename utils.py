@@ -56,7 +56,7 @@ def create_scrolling_video(image_output_path, video_output_path, silent_video_ou
 
     try:
 
-        if len(text_path.split("\n")) >= 10:
+        if len(text_path.split("\n")) >= 8:
             # Create Silent Video W/ Scrolling
             subprocess.run(f"""
                     ffmpeg -f lavfi -i color=s=1920x1080:color=lightcyan -loop 1 -t {audio_length} \
