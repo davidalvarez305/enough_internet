@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 from download import download
 from pics import get_pics
 import os
-from sheets import convert_sheets_values, convert_titles, get_tabs, get_values, select_random_title
+from sheets import convert_sheets_values, convert_titles, convert_to_write_values, get_tabs, get_values, select_random_title, write_values
 from tts import tts
 from utils import delete_files
 
@@ -16,23 +16,22 @@ def main():
     title_options = convert_titles(SPREADSHEET_ID)
 
     for index, video in enumerate(data):
-        part = int(video['count']) + 1
         if "weight loss" in video['series']:
             try:
                 video['body']['snippet']['title'] = select_random_title(title_options, video['series'])
                 get_pics(video)
-                data[index]['count'] = part
-                with open("vids.json", "w") as f:
-                    json.dump(data, f, indent=4)
+
+                values_to_write = convert_to_write_values(data)
+                write_values(SPREADSHEET_ID, 'Tabs!C2:C', values_to_write)
             except BaseException as err:
                 print(f"Unexpected {err=}, {type(err)=}")
                 delete_files()
         if "AskReddit" in video['series'] or "Jokes" in video['series']:
             try:
                 tts(video)
-                data[index]['count'] = part
-                with open("vids.json", "w") as f:
-                    json.dump(data, f, indent=4)
+
+                values_to_write = convert_to_write_values(data)
+                write_values(SPREADSHEET_ID, 'Tabs!C2:C', values_to_write)
             except BaseException as err:
                 print(f"Error: {err}")
                 delete_files()
@@ -40,9 +39,9 @@ def main():
             try:
                 video['body']['snippet']['title'] = select_random_title(title_options, video['series'])
                 download(video)
-                data[index]['count'] = part
-                with open("vids.json", "w") as f:
-                    json.dump(data, f, indent=4)
+
+                values_to_write = convert_to_write_values(data)
+                write_values(SPREADSHEET_ID, 'Tabs!C2:C', values_to_write)
             except BaseException as err:
                 print(f"Unexpected {err=}, {type(err)=}")
                 delete_files()

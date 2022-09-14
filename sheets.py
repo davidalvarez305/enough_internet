@@ -55,7 +55,7 @@ def convert_to_write_values(data):
         row = []
         for key, value in d.items():
             if 'count' in key:
-                row.append(value)
+                row.append(int(value) + 1)
         rows.append(row)
     return rows
 
