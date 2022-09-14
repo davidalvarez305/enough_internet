@@ -87,6 +87,7 @@ def create_looped_audio(audio_path, video_length):
 
 
 def tts(video):
+    count = 0
 
     reddit = praw.Reddit(
         client_id=str(os.environ.get('REDDIT_ID')),
@@ -201,6 +202,7 @@ def tts(video):
             video['body']['snippet']['title'] = youtube_title
 
             upload(mp4_video_path, video['body'])
+            count += 1
 
             os.replace(mp4_video_path, str(Path.home()) +
                        "/vids/" + mp4_video_path)
@@ -212,3 +214,5 @@ def tts(video):
                        "/vids/" + mp4_video_path)
             print("Request failed: ", err)
             delete_files()
+
+    return count

@@ -1,6 +1,7 @@
 import json
 from dotenv import load_dotenv
 from download import download
+from gmail import send_mail
 from pics import get_pics
 import os
 from sheets import convert_sheets_values, convert_titles, convert_to_write_values, get_tabs, get_values, select_random_title, write_values
@@ -15,11 +16,14 @@ def main():
     data = convert_sheets_values(vids)
     title_options = convert_titles(SPREADSHEET_ID)
 
+    count = 0
+
     for index, video in enumerate(data):
         if "weight loss" in video['series']:
             try:
                 video['body']['snippet']['title'] = select_random_title(title_options, video['series'])
                 get_pics(video)
+                count += 1
 
                 values_to_write = convert_to_write_values(data)
                 write_values(SPREADSHEET_ID, 'Tabs!C2:C', values_to_write)
@@ -28,7 +32,8 @@ def main():
                 delete_files()
         if "AskReddit" in video['series'] or "Jokes" in video['series']:
             try:
-                tts(video)
+                vids_uploaded = tts(video)
+                count += vids_uploaded
 
                 values_to_write = convert_to_write_values(data)
                 write_values(SPREADSHEET_ID, 'Tabs!C2:C', values_to_write)
@@ -39,12 +44,15 @@ def main():
             try:
                 video['body']['snippet']['title'] = select_random_title(title_options, video['series'])
                 download(video)
+                count += 1
 
                 values_to_write = convert_to_write_values(data)
                 write_values(SPREADSHEET_ID, 'Tabs!C2:C', values_to_write)
             except BaseException as err:
                 print(f"Unexpected {err=}, {type(err)=}")
                 delete_files()
+
+    send_mail(count)
 
 
 if __name__ == "__main__":
