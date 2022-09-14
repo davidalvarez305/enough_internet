@@ -35,5 +35,4 @@ def get_auth():
         scopes=creds['scope'],
     )
 
-    print("Credentials obtained successfully!")
     return credentials

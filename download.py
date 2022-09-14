@@ -16,8 +16,11 @@ def download(video):
 
     posts = json.loads(resp)
 
+    users = []
+
     for post in posts['data']['children']:
         if post['data']['secure_media'] and 'reddit_video' in post['data']['secure_media']:
+            users.append(post['data']['author'])
             download_link = post['data']['secure_media']['reddit_video']['fallback_url']
             with youtube_dl.YoutubeDL() as ydl:
                 ydl.download([download_link])
@@ -51,6 +54,8 @@ def download(video):
         subprocess.run(f"ffmpeg -f concat -safe 0 -i videos.txt -c:v libx265 -vtag hvc1 -vf scale=1920:1080 -crf 20 -c:a copy {vid_name}", shell=True,
                        check=True, text=True)
 
+        desc = "original sauce to the following users, in order: " + ", \n".join(users)
+        video['body']['snippet']['description'] = desc
         upload(vid_name, video['body'])
 
         os.replace(vid_name, str(Path.home()) + "/vids/" + vid_name)
