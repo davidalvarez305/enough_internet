@@ -17,7 +17,7 @@ def main():
 
     for index, video in enumerate(data):
         part = int(video['count']) + 1
-        """ if "weight loss" in video['series']:
+        if "weight loss" in video['series']:
             try:
                 video['body']['snippet']['title'] = select_random_title(title_options, video['series'])
                 get_pics(video)
@@ -45,7 +45,7 @@ def main():
                     json.dump(data, f, indent=4)
             except BaseException as err:
                 print(f"Unexpected {err=}, {type(err)=}")
-                delete_files() """
+                delete_files()
 
 
 if __name__ == "__main__":
