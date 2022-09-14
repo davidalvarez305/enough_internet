@@ -19,7 +19,7 @@ def send_mail(count):
         {count} videos were uploaded
         ''')
 
-        message['To'] = str(os.environ.get('EMAIL_ONE'))
+        message['To'] = str(os.environ.get('EMAIL_TWO'))
         message['From'] = str(os.environ.get('EMAIL_ONE'))
         message['Subject'] = f"{count} YouTube Videos Uploaded"
 
