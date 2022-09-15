@@ -25,7 +25,7 @@ def create_image(text_path, img_output_path):
         with Image(width=image_width, height=image_height, background=Color("LIGHTCYAN")) as img:
             with Drawing() as draw:
                 draw.font = "NotoSans-Bold.ttf"
-                draw.font_size = 25
+                draw.font_size = 40
                 for i, line in enumerate(text.split("\n")):
                     metrics = draw.get_font_metrics(img, line, multiline=True)
                     last_idx = 1
@@ -51,19 +51,21 @@ def create_image(text_path, img_output_path):
                 img.save(filename=img_output_path)
 
 
-def create_scrolling_video(image_output_path, video_output_path, silent_video_output_path, audio_input_path, final_video_output_path, text_path):
+def create_scrolling_video(image_output_path, video_output_path, silent_video_output_path, audio_input_path, final_video_output_path, text_length):
     audio_length = MP3(audio_input_path).info.length
+
+    print(text_length)
 
     try:
 
-        if len(text_path.split("\n")) >= 8:
+        if text_length >= 8:
             # Create Silent Video W/ Scrolling
             subprocess.run(f"""
                     ffmpeg -f lavfi -i color=s=1920x1080:color=lightcyan -loop 1 -t {audio_length} \
                     -i {image_output_path} -filter_complex \
                     "[1:v]scale=1920:-2,setpts=if(eq(N\,0)\,0\,1+{audio_length}/TB),fps=25[fg]; \
                     [0:v][fg]overlay=y=-'t*h*0.02':eof_action=endall[v]" -map "[v]" {video_output_path}
-                """, shell=True, check=True, text=True)
+                """, shell=True, check=True, text=True, timeout=5*60)
         else:
             # Create Video Without Scrolling
             subprocess.run(f"""
@@ -80,7 +82,7 @@ def create_scrolling_video(image_output_path, video_output_path, silent_video_ou
             f"""ffmpeg -i {silent_video_output_path} -i {audio_input_path} -c:v copy \
             -filter_complex "[0:a]aformat=fltp:44100:stereo,apad[0a];[1]aformat=fltp:44100:stereo,volume=0.75[1a];[0a][1a]amerge[a]" \
             -map 0:v -map "[a]" -ac 2 {final_video_output_path}""", shell=True,
-            check=True, text=True)
+            check=True, text=True, timeout=5*60)
     except BaseException as err:
         print(err)
 

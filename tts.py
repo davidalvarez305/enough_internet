@@ -27,11 +27,11 @@ def create_slide(audio_length, audio_path, text_path, output_path):
 def wrap_text(text):
     if text.isupper():
         return textwrap.wrap(
-            text, width=75, break_long_words=False, break_on_hyphens=True)
+            text, width=50, break_long_words=False, break_on_hyphens=True)
 
     else:
         return textwrap.wrap(
-            text, width=125, break_long_words=False, break_on_hyphens=True)
+            text, width=100, break_long_words=False, break_on_hyphens=True)
 
 
 def get_username(redditor):
@@ -152,6 +152,8 @@ def tts(video):
 
                 wrapped_text = wrap_text(top_level_comment.body)
 
+                text_length = len(wrapped_text.split("\n"))
+
                 with open(text_path, 'w') as f:
                     f.write("\n".join(wrapped_text) +
                             "\n" + "by /u/" + comment_author)
@@ -159,7 +161,7 @@ def tts(video):
                 try:
                     create_image(text_path, img_output_path)
                     create_scrolling_video(
-                        img_output_path, output_path, silent_output_path, audio_path, final_output_path, text_path)
+                        img_output_path, output_path, silent_output_path, audio_path, final_output_path, text_length)
                 except BaseException as err:
                     print(err)
 
@@ -186,7 +188,7 @@ def tts(video):
 
             subprocess.run(
                 f'''ffmpeg -i final.mp4 -i post_song.mp3 -c:v copy \
-                -filter_complex "[0:a]aformat=fltp:44100:stereo,apad[0a];[1]aformat=fltp:44100:stereo,volume=0.05[1a];[0a][1a]amerge[a]" -map 0:v -map "[a]" -ac 2 \
+                -filter_complex "[0:a]aformat=fltp:44100:stereo,volume=1.25,apad[0a];[1]aformat=fltp:44100:stereo,volume=0.025[1a];[0a][1a]amerge[a]" -map 0:v -map "[a]" -ac 2 \
                 {mp4_video_path}''', shell=True,
                 check=True, text=True)
         except BaseException as err:
@@ -196,7 +198,12 @@ def tts(video):
 
         try:
             desc = "OC by these users: " + ", ".join(users)
-            youtube_title = title + " - /r/" + video['series']
+            youtube_title = ""
+            
+            if len(title) > 100:
+                youtube_title = title[:75] + "..."  + " - /r/" + video['series']
+            else:
+                youtube_title = title + " - /r/" + video['series']
 
             video['body']['snippet']['description'] = desc
             video['body']['snippet']['title'] = youtube_title
