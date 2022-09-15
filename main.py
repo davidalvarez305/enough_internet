@@ -4,7 +4,7 @@ from download import download
 from gmail import send_mail
 from pics import get_pics
 import os
-from sheets import convert_sheets_values, convert_titles, convert_to_write_values, get_tabs, get_values, select_random_title, write_values
+from sheets import convert_sheets_values, convert_titles, convert_to_write_values, get_values, select_random_title, write_values
 from tts import tts
 from utils import delete_files
 

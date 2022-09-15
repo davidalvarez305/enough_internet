@@ -4,6 +4,7 @@ from wand.image import Image
 from wand.drawing import Drawing
 from wand.drawing import Color
 from mutagen.mp3 import MP3
+from subprocess import STDOUT, check_output
 
 # Write text to an image with defined metrics
 
@@ -58,14 +59,14 @@ def create_scrolling_video(image_output_path, video_output_path, silent_video_ou
 
     try:
 
-        if text_length >= 8:
+        if text_length >= 6:
             # Create Silent Video W/ Scrolling
             subprocess.run(f"""
                     ffmpeg -f lavfi -i color=s=1920x1080:color=lightcyan -loop 1 -t {audio_length} \
                     -i {image_output_path} -filter_complex \
                     "[1:v]scale=1920:-2,setpts=if(eq(N\,0)\,0\,1+{audio_length}/TB),fps=25[fg]; \
                     [0:v][fg]overlay=y=-'t*h*0.02':eof_action=endall[v]" -map "[v]" {video_output_path}
-                """, shell=True, check=True, text=True, timeout=5*60)
+                """, shell=True, check=True, text=True)
         else:
             # Create Video Without Scrolling
             subprocess.run(f"""
@@ -78,11 +79,10 @@ def create_scrolling_video(image_output_path, video_output_path, silent_video_ou
             """, shell=True, check=True, text=True)
 
         # Put together video and TTS audio
-        subprocess.run(
+        check_output(
             f"""ffmpeg -i {silent_video_output_path} -i {audio_input_path} -c:v copy \
             -filter_complex "[0:a]aformat=fltp:44100:stereo,apad[0a];[1]aformat=fltp:44100:stereo,volume=0.75[1a];[0a][1a]amerge[a]" \
-            -map 0:v -map "[a]" -ac 2 {final_video_output_path}""", shell=True,
-            check=True, text=True, timeout=5*60)
+            -map 0:v -map "[a]" -ac 2 {final_video_output_path}""", shell=True, text=True, timeout=5*60)
     except BaseException as err:
         print(err)
 

@@ -27,11 +27,11 @@ def create_slide(audio_length, audio_path, text_path, output_path):
 def wrap_text(text):
     if text.isupper():
         return textwrap.wrap(
-            text, width=50, break_long_words=False, break_on_hyphens=True)
+            text, width=60, break_long_words=False, break_on_hyphens=True)
 
     else:
         return textwrap.wrap(
-            text, width=100, break_long_words=False, break_on_hyphens=True)
+            text, width=115, break_long_words=False, break_on_hyphens=True)
 
 
 def get_username(redditor):
@@ -190,8 +190,7 @@ def tts(video):
             subprocess.run(
                 f'''ffmpeg -i final.mp4 -i post_song.mp3 -c:v copy \
                 -filter_complex "[0:a]aformat=fltp:44100:stereo,volume=1.25,apad[0a];[1]aformat=fltp:44100:stereo,volume=0.025[1a];[0a][1a]amerge[a]" -map 0:v -map "[a]" -ac 2 \
-                {mp4_video_path}''', shell=True,
-                check=True, text=True)
+                {mp4_video_path}''', shell=True, check=True, text=True)
         except BaseException as err:
             delete_files()
             print("Video creation failed: ", err)
