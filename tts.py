@@ -1,3 +1,4 @@
+from genericpath import isfile
 import json
 from lib2to3.pytree import Base
 import os
@@ -111,26 +112,22 @@ def tts(video):
 
         title = post['data']['title']
         gTTS(title).save("title.mp3")
-        wrapped_title = wrap_text(title)
-        title_length = len(wrapped_title[0].split("\n"))
         with open("title.txt", 'w') as f:
-            f.write("\n".join(wrapped_title) + post_author)
+            f.write(title + post_author)
 
         # Write text to an image
         create_image("title.txt", "title.png")
         create_scrolling_video(
-            "title.png", "title.mp4", "title_silent.mp4", "title.mp3", "title_final.mp4", title_length)
+            "title.png", "title.mp4", "title_silent.mp4", "title.mp3", "title_final.mp4", len(title))
 
         if post['data']['subreddit'] == "Jokes":
             joke = post['data']['selftext']
             gTTS(joke).save("joke.mp3")
-            wrapped_joke = wrap_text(joke)
-            joke_length = len(wrapped_joke[0].split("\n"))
             with open("joke.txt", 'w') as f:
-                f.write("\n".join(wrapped_joke) + post_author)
+                f.write(joke + post_author)
             create_image("joke.txt", "joke.png")
             create_scrolling_video(
-                "joke.png", "joke.mp4", "joke_silent.mp4", "joke.mp3", "joke_final.mp4", joke_length)
+                "joke.png", "joke.mp4", "joke_silent.mp4", "joke.mp3", "joke_final.mp4", len(joke))
 
         sub = reddit.submission(url=post['data']['url'])
 
@@ -152,17 +149,14 @@ def tts(video):
                 text_path = "post" + str(index) + ".txt"
                 img_output_path = "post" + str(index) + ".png"
 
-                wrapped_text = wrap_text(top_level_comment.body)
-                text_length = len(wrapped_text[0].split("\n"))
-
                 with open(text_path, 'w') as f:
-                    f.write("\n".join(wrapped_text) +
+                    f.write(top_level_comment.body +
                             "\n" + "by /u/" + comment_author)
 
                 try:
                     create_image(text_path, img_output_path)
                     create_scrolling_video(
-                        img_output_path, output_path, silent_output_path, audio_path, final_output_path, text_length)
+                        img_output_path, output_path, silent_output_path, audio_path, final_output_path, len(top_level_comment.body))
                 except BaseException as err:
                     print(err)
 

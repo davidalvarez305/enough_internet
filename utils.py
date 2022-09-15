@@ -22,44 +22,52 @@ def create_image(text_path, img_output_path):
     with open(text_path, "r") as f:
         text = f.read()
 
-    with Drawing() as ctx:
-        with Image(width=image_width, height=image_height, background=Color("LIGHTCYAN")) as img:
-            with Drawing() as draw:
-                draw.font = "NotoSans-Bold.ttf"
-                draw.font_size = 40
-                for i, line in enumerate(text.split("\n")):
-                    metrics = draw.get_font_metrics(img, line, multiline=True)
-                    last_idx = 1
-                    while metrics.text_width > right_margin:
-                        last_breakpoint = 0
-                        for idx in range(last_idx, len(line)):
-                            if line[idx] == ' ':
-                                last_breakpoint = idx
-                            else:
-                                metrics = draw.get_font_metrics(
-                                    img, line[:idx], multiline=True)
-                                if metrics.text_width >= right_margin:
-                                    line = line[:last_breakpoint].strip(
-                                    ) + '\n' + line[last_breakpoint:].strip()
-                                    last_idx = last_breakpoint
-                                    break
+    try:
+        count_loops = 0
+        with Drawing() as ctx:
+            with Image(width=image_width, height=image_height, background=Color("LIGHTCYAN")) as img:
+                with Drawing() as draw:
+                    draw.font = "NotoSans-Bold.ttf"
+                    draw.font_size = 40
+                    for i, line in enumerate(text.split("\n")):
                         metrics = draw.get_font_metrics(
                             img, line, multiline=True)
-                    draw.text(x=left_margin, y=top_margin +
-                              line_offset, body=line)
-                    line_offset += int(metrics.text_height) + line_padding
-                draw(img)
-                img.save(filename=img_output_path)
+                        last_idx = 1
+                        while metrics.text_width > right_margin:
+                            last_breakpoint = 0
+                            for idx in range(last_idx, len(line)):
+                                if line[idx] == ' ':
+                                    last_breakpoint = idx
+                                else:
+                                    metrics = draw.get_font_metrics(
+                                        img, line[:idx], multiline=True)
+                                    count_loops += 1
+                                    if count_loops >= 100:
+                                        raise Exception(
+                                            'Stuck in forever loop....')
+                                    if metrics.text_width >= right_margin:
+                                        line = line[:last_breakpoint].strip(
+                                        ) + '\n' + line[last_breakpoint:].strip()
+                                        last_idx = last_breakpoint
+                                        break
+                            metrics = draw.get_font_metrics(
+                                img, line, multiline=True)
+                        draw.text(x=left_margin, y=top_margin +
+                                  line_offset, body=line)
+                        line_offset += int(metrics.text_height) + line_padding
+                    draw(img)
+                    img.save(filename=img_output_path)
+    except BaseException as err:
+        print("==========================")
+        print(err)
+        print("==========================")
 
 
 def create_scrolling_video(image_output_path, video_output_path, silent_video_output_path, audio_input_path, final_video_output_path, text_length):
     audio_length = MP3(audio_input_path).info.length
 
-    print(text_length)
-
     try:
-
-        if text_length >= 6:
+        if text_length >= 450:
             # Create Silent Video W/ Scrolling
             subprocess.run(f"""
                     ffmpeg -f lavfi -i color=s=1920x1080:color=lightcyan -loop 1 -t {audio_length} \
@@ -79,10 +87,8 @@ def create_scrolling_video(image_output_path, video_output_path, silent_video_ou
             """, shell=True, check=True, text=True)
 
         # Put together video and TTS audio
-        check_output(
-            f"""ffmpeg -i {silent_video_output_path} -i {audio_input_path} -c:v copy \
-            -filter_complex "[0:a]aformat=fltp:44100:stereo,apad[0a];[1]aformat=fltp:44100:stereo,volume=0.75[1a];[0a][1a]amerge[a]" \
-            -map 0:v -map "[a]" -ac 2 {final_video_output_path}""", shell=True, text=True, timeout=5*60)
+        check_output(["sh", "create_final_video.sh", f"{silent_video_output_path}",
+                     f"{audio_input_path}", f"{final_video_output_path}"], stderr=STDOUT, timeout=120)
     except BaseException as err:
         print(err)
 
