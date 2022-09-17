@@ -5,13 +5,13 @@ import os
 from pathlib import Path
 from random import randrange
 import re
-from gtts import gTTS
 from utils import create_image, create_scrolling_video, delete_files
 from make_request import make_request
 from praw.models import MoreComments
 import praw
 import subprocess
 import textwrap
+from voice import save
 from youtube import upload
 from mutagen.mp3 import MP3
 import math
@@ -111,7 +111,7 @@ def tts(video):
         users = [post_author]
 
         title = post['data']['title']
-        gTTS(title).save("title.mp3")
+        save(text=title, path="title.mp3")
         with open("title.txt", 'w') as f:
             f.write(title + post_author)
 
@@ -122,7 +122,7 @@ def tts(video):
 
         if post['data']['subreddit'] == "Jokes":
             joke = post['data']['selftext']
-            gTTS(joke).save("joke.mp3")
+            save(text=joke, path="joke.mp3")
             with open("joke.txt", 'w') as f:
                 f.write(joke + post_author)
             create_image("joke.txt", "joke.png")
@@ -140,9 +140,8 @@ def tts(video):
             if top_level_comment.score >= highest_comment_score * 0.05:
                 comment_author = get_username(top_level_comment.author)
                 users.append(comment_author)
-                audio_file = gTTS(top_level_comment.body)
                 audio_path = "post" + str(index) + ".mp3"
-                audio_file.save(audio_path)
+                save(text=top_level_comment.body, path=audio_path)
                 output_path = "post" + str(index) + ".mp4"
                 final_output_path = "post" + str(index) + "_final.mp4"
                 silent_output_path = "post" + str(index) + "_silent.mp4"

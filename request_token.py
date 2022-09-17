@@ -3,7 +3,8 @@ from dotenv import load_dotenv
 import google_auth_oauthlib.flow
 from oauth2client.client import OAuth2Credentials
 
-scopes = ["https://www.googleapis.com/auth/youtube.upload", "https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/gmail.send"]
+scopes = ["https://www.googleapis.com/auth/youtube.upload", "https://www.googleapis.com/auth/spreadsheets",
+          "https://www.googleapis.com/auth/gmail.send", "https://www.googleapis.com/auth/cloud-platform"]
 
 
 def get_token():

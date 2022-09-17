@@ -1,4 +1,3 @@
-import json
 from dotenv import load_dotenv
 from download import download
 from gmail import send_mail
