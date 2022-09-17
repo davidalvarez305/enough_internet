@@ -42,7 +42,7 @@ def create_image(text_path, img_output_path):
                                     metrics = draw.get_font_metrics(
                                         img, line[:idx], multiline=True)
                                     count_loops += 1
-                                    if count_loops >= 250:
+                                    if count_loops >= 250000:
                                         raise Exception(
                                             'Stuck in forever loop....')
                                     if metrics.text_width >= right_margin:
@@ -58,16 +58,14 @@ def create_image(text_path, img_output_path):
                     draw(img)
                     img.save(filename=img_output_path)
     except BaseException as err:
-        print("==========================")
         print(err)
-        print("==========================")
 
 
 def create_scrolling_video(image_output_path, video_output_path, silent_video_output_path, audio_input_path, final_video_output_path, text_length):
     audio_length = MP3(audio_input_path).info.length
 
     try:
-        if text_length >= 450:
+        if text_length >= 900:
             # Create Silent Video W/ Scrolling
             subprocess.run(f"""
                     ffmpeg -f lavfi -i color=s=1920x1080:color=lightcyan -loop 1 -t {audio_length} \

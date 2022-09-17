@@ -195,7 +195,7 @@ def tts(video):
             youtube_title = ""
             
             if len(title) > 100:
-                youtube_title = title[:75] + "..."  + " - /r/" + video['series']
+                youtube_title = title[:85] + "..."  + " - Reddit"
             else:
                 youtube_title = title + " - /r/" + video['series']
 
