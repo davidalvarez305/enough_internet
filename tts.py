@@ -114,20 +114,17 @@ def tts(video):
         save(text=title, path="title.mp3")
         with open("title.txt", 'w') as f:
             f.write(title + post_author)
-
-        # Write text to an image
         create_image("title.txt", "title.png")
         create_scrolling_video(
             "title.png", "title.mp4", "title_silent.mp4", "title.mp3", "title_final.mp4", len(title))
 
-        if post['data']['subreddit'] == "Jokes":
-            joke = post['data']['selftext']
-            save(text=joke, path="joke.mp3")
-            with open("joke.txt", 'w') as f:
-                f.write(joke + post_author)
-            create_image("joke.txt", "joke.png")
-            create_scrolling_video(
-                "joke.png", "joke.mp4", "joke_silent.mp4", "joke.mp3", "joke_final.mp4", len(joke))
+        original_post = post['data']['selftext']
+        save(text=original_post, path="original_post.mp3")
+        with open("original_post.txt", 'w') as f:
+            f.write(original_post + post_author)
+        create_image("original_post.txt", "original_post.png")
+        create_scrolling_video(
+            "original_post.png", "original_post.mp4", "original_post_silent.mp4", "original_post.mp3", "original_post_final.mp4", len(original_post))
 
         sub = reddit.submission(url=post['data']['url'])
 
