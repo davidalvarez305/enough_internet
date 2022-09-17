@@ -31,17 +31,7 @@ def main():
             except BaseException as err:
                 print(f"Unexpected {err=}, {type(err)=}")
                 delete_files()
-        if "AskReddit" in video['series'] or "Jokes" in video['series'] or "ELI5" in video['series'] or "TIL" in video['series'] or "ShowerThoughts" in video['series'] or "TalesFromRetail" in video['series'] or "AskHistorians" in video['series'] or "LifeProTips" in video['series']:
-            try:
-                vids_uploaded = tts(video)
-                count += vids_uploaded
-
-                values_to_write = convert_to_write_values(data)
-                write_values(SPREADSHEET_ID, 'Tabs!C2:C', values_to_write)
-            except BaseException as err:
-                print(f"Error: {err}")
-                delete_files()
-        else:
+        if "internet clips" in video['series'] or "laughing uncontrollably" in video['series']:
             try:
                 video['body']['snippet']['title'] = select_random_title(
                     title_options, video['series'])
@@ -52,6 +42,16 @@ def main():
                 write_values(SPREADSHEET_ID, 'Tabs!C2:C', values_to_write)
             except BaseException as err:
                 print(f"Unexpected {err=}, {type(err)=}")
+                delete_files()
+        else:
+            try:
+                vids_uploaded = tts(video)
+                count += vids_uploaded
+
+                values_to_write = convert_to_write_values(data)
+                write_values(SPREADSHEET_ID, 'Tabs!C2:C', values_to_write)
+            except BaseException as err:
+                print(f"Error: {err}")
                 delete_files()
 
     send_mail(count)
