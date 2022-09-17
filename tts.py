@@ -154,8 +154,13 @@ def tts(video):
 
                 try:
                     create_image(text_path, img_output_path)
+
+                    if not os.path.isfile(img_output_path):
+                        raise Exception("Image was not created.")
+
                     create_scrolling_video(
                         img_output_path, output_path, silent_output_path, audio_path, final_output_path, len(top_level_comment.body))
+
                 except BaseException as err:
                     print(err)
 

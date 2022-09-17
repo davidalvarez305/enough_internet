@@ -42,7 +42,7 @@ def create_image(text_path, img_output_path):
                                     metrics = draw.get_font_metrics(
                                         img, line[:idx], multiline=True)
                                     count_loops += 1
-                                    if count_loops >= 250000:
+                                    if count_loops >= 100000:
                                         raise Exception(
                                             'Stuck in forever loop....')
                                     if metrics.text_width >= right_margin:
