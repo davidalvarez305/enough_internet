@@ -146,14 +146,14 @@ def tts(video):
                 img_output_path = "post" + str(index) + ".png"
 
                 with open(text_path, 'w') as f:
-                    f.write(top_level_comment.body +
+                    f.write(top_level_comment.body.replace("\n\n", "\n") +
                             "\n" + "by /u/" + comment_author)
 
                 try:
                     create_image(text_path, img_output_path)
 
                     if not os.path.isfile(img_output_path):
-                        raise Exception("Image was not created.")
+                        raise Exception("Image was not created")
 
                     create_scrolling_video(
                         img_output_path, output_path, silent_output_path, audio_path, final_output_path, len(top_level_comment.body))

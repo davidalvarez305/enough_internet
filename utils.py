@@ -6,9 +6,6 @@ from wand.drawing import Color
 from mutagen.mp3 import MP3
 from subprocess import STDOUT, check_output
 
-# Write text to an image with defined metrics
-
-
 def create_image(text_path, img_output_path):
     image_width = 1920
     image_height = 1090
@@ -42,7 +39,7 @@ def create_image(text_path, img_output_path):
                                     metrics = draw.get_font_metrics(
                                         img, line[:idx], multiline=True)
                                     count_loops += 1
-                                    if count_loops >= 100000:
+                                    if count_loops >= 1000:
                                         raise Exception(
                                             'Stuck in forever loop....')
                                     if metrics.text_width >= right_margin:
