@@ -19,16 +19,12 @@ def save(text, path):
                 audio_encoding=texttospeech.AudioEncoding.MP3
             )
 
-            try:
-                response = client.synthesize_speech(
+            response = client.synthesize_speech(
                     input=synthesis_input, voice=voice, audio_config=audio_config
                 )
 
-                with open(path, "wb") as out:
-                    out.write(response.audio_content)
-
-            except Exception as err:
-                print(err)
+            with open(path, "wb") as out:
+                out.write(response.audio_content)
 
         else:
-            raise Exception("Cannot create voice.")
+           print("Cannot create voice.")

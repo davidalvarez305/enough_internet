@@ -111,17 +111,19 @@ def tts(video):
         users = [post_author]
 
         title = post['data']['title']
+        wrapped_title = wrap_text(title)
         save(text=title, path="title.mp3")
         with open("title.txt", 'w') as f:
-            f.write(title + post_author)
+            f.write("\n".join(wrapped_title) + post_author)
         create_image("title.txt", "title.png")
         create_scrolling_video(
             "title.png", "title.mp4", "title_silent.mp4", "title.mp3", "title_final.mp4", len(title))
 
         original_post = post['data']['selftext']
+        wrapped_original_post = wrap_text(original_post)
         save(text=original_post, path="original_post.mp3")
         with open("original_post.txt", 'w') as f:
-            f.write(original_post + post_author)
+            f.write("\n".join(wrapped_original_post) + post_author)
         create_image("original_post.txt", "original_post.png")
         create_scrolling_video(
             "original_post.png", "original_post.mp4", "original_post_silent.mp4", "original_post.mp3", "original_post_final.mp4", len(original_post))
@@ -138,18 +140,20 @@ def tts(video):
                 comment_author = get_username(top_level_comment.author)
                 users.append(comment_author)
                 audio_path = "post" + str(index) + ".mp3"
-                save(text=top_level_comment.body, path=audio_path)
                 output_path = "post" + str(index) + ".mp4"
                 final_output_path = "post" + str(index) + "_final.mp4"
                 silent_output_path = "post" + str(index) + "_silent.mp4"
                 text_path = "post" + str(index) + ".txt"
                 img_output_path = "post" + str(index) + ".png"
 
+                wrapped_text = wrap_text(top_level_comment.body)
+
                 with open(text_path, 'w') as f:
-                    f.write(top_level_comment.body.replace("\n\n", "\n") +
-                            "\n" + "by /u/" + comment_author)
+                    f.write("\n".join(wrapped_text) + "\n" + "by /u/" + comment_author)
 
                 try:
+                    save(text=top_level_comment.body, path=audio_path)
+
                     create_image(text_path, img_output_path)
 
                     if not os.path.isfile(img_output_path):
@@ -160,6 +164,7 @@ def tts(video):
 
                 except BaseException as err:
                     print(err)
+                    continue
 
         mp4_files = os.listdir()
         files_to_join = ["file 'title_final.mp4'"]
@@ -194,9 +199,9 @@ def tts(video):
         try:
             desc = "OC by these users: " + ", ".join(users)
             youtube_title = ""
-            
+
             if len(title) > 100:
-                youtube_title = title[:85] + "..."  + " - Reddit"
+                youtube_title = title[:85] + "..." + " - Reddit"
             else:
                 youtube_title = title + " - /r/" + video['series']
 
@@ -216,5 +221,6 @@ def tts(video):
                        "/vids/" + mp4_video_path)
             print("Request failed: ", err)
             delete_files()
+            continue
 
     return count
