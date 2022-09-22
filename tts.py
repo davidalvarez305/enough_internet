@@ -86,6 +86,35 @@ def create_looped_audio(audio_path, video_length):
     except BaseException as err:
         raise Exception("Concatenation of songs failed: ", err)
 
+def create_video(text, post, author):
+    audio_path = post + ".mp3"
+    txt_path = post + ".txt"
+    img_path = post + ".png"
+    silent_path = post + "_silent.mp4"
+    slide_path = post + ".mp4"
+    final_path = post + "_final.mp4"
+    
+    wrapped_post = wrap_text(text)
+
+    try:
+        # Create Audio
+        save(text=text, path=audio_path)
+
+        with open(txt_path, 'w') as f:
+            f.write("\n".join(wrapped_post) + "\n" + "by /u/" + author)
+        
+        # Create Image
+        create_image(txt_path, img_path)
+
+        if os.path.isfile(img_path):
+            # Create initial single video
+            create_scrolling_video(
+                img_path, slide_path, silent_path, audio_path, final_path, len(text))
+
+    except BaseException as err:
+        print(err)
+
+
 
 def tts(video):
     count = 0
@@ -107,26 +136,13 @@ def tts(video):
     for post in posts['data']['children']:
 
         post_author = "\n" + "by /u/" + post['data']['author']
-
         users = [post_author]
 
         title = post['data']['title']
-        wrapped_title = wrap_text(title)
-        save(text=title, path="title.mp3")
-        with open("title.txt", 'w') as f:
-            f.write("\n".join(wrapped_title) + post_author)
-        create_image("title.txt", "title.png")
-        create_scrolling_video(
-            "title.png", "title.mp4", "title_silent.mp4", "title.mp3", "title_final.mp4", len(title))
+        create_video(text=title, post="title", author=post_author)
 
         original_post = post['data']['selftext']
-        wrapped_original_post = wrap_text(original_post)
-        save(text=original_post, path="original_post.mp3")
-        with open("original_post.txt", 'w') as f:
-            f.write("\n".join(wrapped_original_post) + post_author)
-        create_image("original_post.txt", "original_post.png")
-        create_scrolling_video(
-            "original_post.png", "original_post.mp4", "original_post_silent.mp4", "original_post.mp3", "original_post_final.mp4", len(original_post))
+        create_video(text=original_post, post="original_post", author=post_author)
 
         sub = reddit.submission(url=post['data']['url'])
 
@@ -139,32 +155,7 @@ def tts(video):
             if top_level_comment.score >= highest_comment_score * 0.05:
                 comment_author = get_username(top_level_comment.author)
                 users.append(comment_author)
-                audio_path = "post" + str(index) + ".mp3"
-                output_path = "post" + str(index) + ".mp4"
-                final_output_path = "post" + str(index) + "_final.mp4"
-                silent_output_path = "post" + str(index) + "_silent.mp4"
-                text_path = "post" + str(index) + ".txt"
-                img_output_path = "post" + str(index) + ".png"
-
-                wrapped_text = wrap_text(top_level_comment.body)
-
-                with open(text_path, 'w') as f:
-                    f.write("\n".join(wrapped_text) + "\n" + "by /u/" + comment_author)
-
-                try:
-                    save(text=top_level_comment.body, path=audio_path)
-
-                    create_image(text_path, img_output_path)
-
-                    if not os.path.isfile(img_output_path):
-                        raise Exception("Image was not created")
-
-                    create_scrolling_video(
-                        img_output_path, output_path, silent_output_path, audio_path, final_output_path, len(top_level_comment.body))
-
-                except BaseException as err:
-                    print(err)
-                    continue
+                create_video(text=top_level_comment.body, post="post" + str(index), author=comment_author)
 
         mp4_files = os.listdir()
         files_to_join = ["file 'title_final.mp4'"]
