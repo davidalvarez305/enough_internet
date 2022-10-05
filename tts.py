@@ -132,15 +132,13 @@ def tts(video):
     posts = json.loads(resp)
 
     for post in posts['data']['children']:
-
-        post_author = "\n" + "by /u/" + post['data']['author']
-        users = [post_author]
+        users = [post['data']['author']]
 
         title = post['data']['title']
-        create_video(text=title, post="title", author=post_author)
+        create_video(text=title, post="title", author=post['data']['author'])
 
         original_post = post['data']['selftext']
-        create_video(text=original_post, post="original_post", author=post_author)
+        create_video(text=original_post, post="original_post", author=post['data']['author'])
 
         sub = reddit.submission(url=post['data']['url'])
 
