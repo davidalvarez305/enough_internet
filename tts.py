@@ -95,8 +95,6 @@ def create_video(text, post, author):
     wrapped_post = wrap_text(text)
 
     try:
-        # Create Audio
-        save(text=text, path=audio_path)
 
         with open(txt_path, 'w') as f:
             f.write("\n".join(wrapped_post) + "\n" + "by /u/" + author)
@@ -105,6 +103,10 @@ def create_video(text, post, author):
         create_image(txt_path, img_path)
 
         if os.path.isfile(img_path):
+
+            # Create Audio
+            save(text=text, path=audio_path)
+
             # Create initial single video
             create_scrolling_video(
                 img_path, slide_path, silent_path, audio_path, final_path, len(text))
