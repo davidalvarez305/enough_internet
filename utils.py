@@ -58,23 +58,17 @@ def create_image(text_path, img_output_path):
         print(err)
 
 
-def create_scrolling_video(image_output_path, video_output_path, silent_video_output_path, audio_input_path, final_video_output_path, text_length):
+def create_scrolling_video(image_output_path, video_output_path, silent_video_output_path, audio_input_path, final_video_output_path):
     audio_length = MP3(audio_input_path).info.length
 
     try:
-        if text_length >= 900:
-            # Create Silent Video W/ Scrolling
-            subprocess.run(f"""
-                    ffmpeg -f lavfi -i color=s=1920x1080:color=lightcyan -loop 1 -t {audio_length} \
-                    -i {image_output_path} -filter_complex \
-                    "[1:v]scale=1920:-2,setpts=if(eq(N\,0)\,0\,1+{audio_length}/TB),fps=25[fg]; \
-                    [0:v][fg]overlay=y=-'t*h*0.02':eof_action=endall[v]" -map "[v]" {video_output_path}
-                """, shell=True, check=True, text=True)
-        else:
-            # Create Video Without Scrolling
-            subprocess.run(f"""
-                    ffmpeg -t {audio_length} -i {image_output_path} {video_output_path}
-                """, shell=True, check=True, text=True)
+        # Create Silent Video W/ Scrolling
+        subprocess.run(f"""
+                ffmpeg -f lavfi -i color=s=1920x1080:color=white -loop 1 -t {audio_length} \
+                -i {image_output_path} -filter_complex \
+                "[1:v]scale=1920:-2,setpts=if(eq(N\,0)\,0\,1+{audio_length}/TB),fps=25[fg]; \
+                [0:v][fg]overlay=y=-'t*h*0.02':eof_action=endall[v]" -map "[v]" {video_output_path}
+            """, shell=True, check=True, text=True)
 
         # Add silent audio to video
         subprocess.run(f"""

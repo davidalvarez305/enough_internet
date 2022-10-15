@@ -6,4 +6,5 @@
 *.png
 *.jpg
 *.jpeg
+*.txt
 __pycache__
