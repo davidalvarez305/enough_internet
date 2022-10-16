@@ -1,4 +1,7 @@
+import math
 import os
+from random import randrange
+import re
 import subprocess
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -9,9 +12,53 @@ from selenium.webdriver.remote.webdriver import WebElement
 from selenium.webdriver.common.by import By
 from mutagen.mp3 import MP3
 from wand.image import Image
-from tts import create_looped_audio, create_video_title, get_video_length, select_song
 from utils import create_scrolling_video, delete_files
 from voice import save
+
+
+def create_video_title(text):
+    m = re.findall(r"[a-zA-Z0-9]+", text)
+    return "_".join(m) + ".mp4"
+
+
+def get_video_length(video_path):
+    result = subprocess.run(["ffprobe", "-v", "error", "-show_entries",
+                             "format=duration", "-of",
+                             "default=noprint_wrappers=1:nokey=1", video_path],
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.STDOUT)
+    return float(result.stdout)
+
+
+def select_song():
+    files = os.listdir()
+
+    songs = []
+    for f in files:
+        if ".mp3" in f and "post" not in f and "title" not in f and "joke" not in f:
+            songs.append(f)
+
+    random_index = randrange(len(songs))
+
+    return songs[random_index]
+
+
+def create_looped_audio(audio_path, video_length):
+    audio_length = MP3(audio_path).info.length
+    iterations = math.ceil(video_length/audio_length)
+
+    i = 0
+    while i < iterations:
+        with open("songs.txt", 'a') as f:
+            f.write("file '" + audio_path + "'" + "\n")
+        i += 1
+
+    try:
+        subprocess.run(
+            "ffmpeg -f concat -safe 0 -i songs.txt -c copy conv_song.mp3", shell=True,
+            check=True, text=True)
+    except BaseException as err:
+        raise Exception("Concatenation of songs failed: ", err)
 
 def create_image(comments_list, image_output_path):
     first_image = comments_list[0]
@@ -80,14 +127,13 @@ def screenshot_tts(post):
     # First reply: padding-left: 37px
     # Second reply: padding-left: 58px
 
-    driver.get(post['url'])
+    driver.get(post['data']['url'])
 
     comments = driver.find_elements(By.CLASS_NAME, 'Comment')
 
     # Retrieve Conversations From Reddit
     conversations = []
     sub_comments = []
-    last_style = "16px"
     for index, comment in enumerate(comments):
         try:
             parent_div = comment.find_element(By.XPATH, "../../div")
@@ -104,8 +150,6 @@ def screenshot_tts(post):
             current_comment['image'] = ''
 
             sub_comments.append(current_comment)
-
-            last_style = parent_div_style
         except NoSuchElementException:
             continue
 
@@ -121,7 +165,7 @@ def screenshot_tts(post):
         create_conversation_video(comments=conv, conversation_id=conv_id)
 
     # Create Final Video
-    files_to_join = ["final_conv_9999.mp4"]
+    files_to_join = ["file 'final_conv_9999.mp4'"]
     files = os.listdir()
     for file in files:
             if "final_conv_" in file:
@@ -130,7 +174,7 @@ def screenshot_tts(post):
     with open('videos.txt', 'w') as f:
         f.write('\n'.join(files_to_join))
 
-    mp4_video_path = create_video_title("Test video")
+    mp4_video_path = create_video_title(post['data']['title'])
 
     try:
         subprocess.run(f"ffmpeg -f concat -safe 0 -i videos.txt -c:v libx265 -vtag hvc1 -vf scale=1920:1080 -crf 20 -c:a copy final.mp4", shell=True,
@@ -146,3 +190,5 @@ def screenshot_tts(post):
             {mp4_video_path}''', shell=True, check=True, text=True)
     except BaseException:
         pass
+    finally:
+        return mp4_video_path
