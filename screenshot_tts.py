@@ -154,10 +154,14 @@ def screenshot_tts(post):
 
     # Create Title for Video
     title_video = {}
-    title_element = driver.find_element(By.XPATH, './/div[@data-testid="post-container"]')
-    title_video['text'] = post['data']['title'] + post['data']['selftext']
-    title_video['comment'] = title_element
-    create_conversation_video(comments=[title_video], conversation_id=9999)
+    try:
+        title_element = driver.find_element(By.XPATH, './/div[@data-testid="post-container"]')
+        title_video['text'] = post['data']['title'] + post['data']['selftext']
+        title_video['comment'] = title_element
+        create_conversation_video(comments=[title_video], conversation_id=9999)
+    except NoSuchElementException:
+        print("Title element not found.")
+        pass
 
     # Create A Video for Each Conversation
     for conv_id, conv in enumerate(conversations):
