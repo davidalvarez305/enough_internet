@@ -25,6 +25,8 @@ def tts(video):
         except BaseException as err:
             print("Creating this video failed. ", err)
             continue
+        finally:
+            delete_files()
 
         try:
             youtube_title = ""
