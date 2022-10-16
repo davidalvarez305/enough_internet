@@ -35,7 +35,7 @@ def select_song():
 
     songs = []
     for f in files:
-        if ".mp3" in f and "post" not in f and "title" not in f and "joke" not in f:
+        if ".mp3" in f and "conv_" not in f:
             songs.append(f)
 
     random_index = randrange(len(songs))
