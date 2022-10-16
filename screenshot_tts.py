@@ -102,7 +102,7 @@ def create_conversation_video(comments, conversation_id: int):
 
     # Create Single Scrolling Video for Conversation
     subprocess.run(
-            f"ffmpeg -f concat -safe 0 -i {conversation_text_file} -c copy {audio_output_path}", shell=True, check=True, text=True)
+            f"ffmpeg -y -f concat -safe 0 -i {conversation_text_file} -c copy {audio_output_path}", shell=True, check=True, text=True)
 
     create_scrolling_video(
     image_output_path=image_output_path,
@@ -171,7 +171,7 @@ def screenshot_tts(post):
     files_to_join = ["file 'final_conv_9999.mp4'"]
     files = os.listdir()
     for file in files:
-            if "final_conv_" in file:
+            if "final_conv_" in file and not "9999" in file:
                 files_to_join.append("file '" + file + "'")
 
     with open('videos.txt', 'w') as f:
@@ -180,7 +180,7 @@ def screenshot_tts(post):
     mp4_video_path = create_video_title(post['data']['title'])
 
     try:
-        subprocess.run(f"ffmpeg -f concat -safe 0 -i videos.txt -c:v libx265 -vtag hvc1 -vf scale=1920:1080 -crf 20 -c:a copy final.mp4", shell=True,
+        subprocess.run(f"ffmpeg -y -f concat -safe 0 -i videos.txt -c:v libx265 -vtag hvc1 -vf scale=1920:1080 -crf 20 -c:a copy final.mp4", shell=True,
                            check=True, text=True)
 
         video_length = get_video_length("final.mp4")
@@ -188,7 +188,7 @@ def screenshot_tts(post):
         create_looped_audio(selected_song, video_length)
 
         subprocess.run(
-            f'''ffmpeg -i final.mp4 -i conv_song.mp3 -c:v copy \
+            f'''ffmpeg -y -i final.mp4 -i conv_song.mp3 -c:v copy \
             -filter_complex "[0:a]aformat=fltp:44100:stereo,volume=1.25,apad[0a];[1]aformat=fltp:44100:stereo,volume=0.025[1a];[0a][1a]amerge[a]" -map 0:v -map "[a]" -ac 2 \
             {mp4_video_path}''', shell=True, check=True, text=True)
     except BaseException:
