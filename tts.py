@@ -39,14 +39,12 @@ def tts(video):
 
             upload(mp4_video_path, video['body'])
             count += 1
-
-            os.replace(mp4_video_path, str(Path.home()) +
-                       "/vids/" + mp4_video_path)
-
-        except BaseException:
+        except BaseException as err:
+            print(err)
+            continue
+        finally:
             os.replace(mp4_video_path, str(Path.home()) +
                        "/vids/" + mp4_video_path)
             delete_files()
-            continue
 
     return count

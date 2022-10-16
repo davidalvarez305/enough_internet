@@ -7,12 +7,11 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
-from selenium.common.exceptions import WebDriverException, NoSuchElementException
-from selenium.webdriver.remote.webdriver import WebElement
+from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 from mutagen.mp3 import MP3
 from wand.image import Image
-from utils import create_scrolling_video, delete_files
+from utils import create_scrolling_video
 from voice import save
 
 
