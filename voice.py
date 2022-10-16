@@ -1,7 +1,7 @@
 from google.cloud import texttospeech
 from gtts import gTTS
 
-
+# Get Voice from Standard API, if not Get Voice from GCP
 def save(text, path):
     try:
         gTTS(text).save(path)

@@ -42,10 +42,13 @@ def get_pics(video):
             img_data = requests.get(post['data']['url']).content
             img_path = post['data']['author'] + '.jpg'
             post_title = post['data']['title']
+
+            # User Variables
             measurements = ""
             achievements = ""
             time_frame = ""
 
+            # User Stats Regex
             m = re.search(
                 r"""^[A-Z][A-Z0-9 a-z\/'"’”]+""", post_title)
             if m != None:
@@ -59,11 +62,13 @@ def get_pics(video):
             if t != None:
                 time_frame = t.group()
 
+            # User Intro & Description
             img_text = "\n".join([measurements, achievements, time_frame])
 
             with open(img_path, 'wb') as handler:
                 handler.write(img_data)
 
+            # Draw Text & Stats On To Image
             with Drawing() as draw:
                 with Image(filename=img_path) as image:
                     width = int(image.width / 40)
@@ -77,11 +82,11 @@ def get_pics(video):
                     image.save(filename=img_path)
                     users.append(post['data']['author'])
 
+    # Concatenate Images & Create Final Video
     num_images = 0
     for f in listdir():
         if ".jpg" in f:
             num_images += 1
-
     selected_song = select_random_inspiring_song()
     audio_length = MP3(selected_song).info.length
     frame_rate = num_images / audio_length

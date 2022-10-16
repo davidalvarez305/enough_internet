@@ -11,13 +11,12 @@ from pathlib import Path
 
 def download(video):
     source_url = video['source'] + "?limit=" + str(video['limit'])
-
     resp = make_request(source_url)
-
     posts = json.loads(resp)
 
     users = []
 
+    # Download All Videos
     for post in posts['data']['children']:
         if post['data']['secure_media'] and 'reddit_video' in post['data']['secure_media']:
             users.append(post['data']['author'])
@@ -25,8 +24,8 @@ def download(video):
             with youtube_dl.YoutubeDL() as ydl:
                 ydl.download([download_link])
 
+    # Add A Blurred Background to Every Video
     files = listdir()
-
     for file in files:
         if ".mp4" in file:
             file_name = "output_" + file
@@ -39,12 +38,12 @@ def download(video):
                 os.remove(file_name)
                 break
 
+    # Create List of Videos & Concatenate Them into Final Video
     produced_files = listdir()
     files_to_join = []
     for f in produced_files:
         if "output_" in f:
             files_to_join.append("file '" + f + "'")
-
     with open('videos.txt', 'w') as f:
         f.write('\n'.join(files_to_join))
 

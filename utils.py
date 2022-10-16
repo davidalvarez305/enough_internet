@@ -16,7 +16,7 @@ def create_scrolling_video(image_output_path, video_output_path, silent_video_ou
                 [0:v][fg]overlay=y=-'t*h*0.02':eof_action=endall[v]" -map "[v]" {video_output_path}
             """, shell=True, check=True, text=True)
 
-        # Add silent audio to video
+        # Add audio to silent video
         subprocess.run(f"""
                 ffmpeg -i {video_output_path} -f lavfi -i anullsrc -c:v copy -c:a aac -shortest {silent_video_output_path}
             """, shell=True, check=True, text=True)
