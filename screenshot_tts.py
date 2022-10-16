@@ -1,8 +1,5 @@
 import os
-from re import sub
 import subprocess
-from typing import List
-from dotenv import load_dotenv
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
@@ -12,7 +9,8 @@ from selenium.webdriver.remote.webdriver import WebElement
 from selenium.webdriver.common.by import By
 from mutagen.mp3 import MP3
 from wand.image import Image
-from utils import create_scrolling_video
+from tts import create_looped_audio, create_video_title, get_video_length, select_song
+from utils import create_scrolling_video, delete_files
 from voice import save
 
 def create_image(comments_list, image_output_path):
@@ -69,8 +67,7 @@ def create_conversation_video(comments, conversation_id: int):
     )
 
 
-def main():
-    load_dotenv()
+def screenshot_tts(post):
     options = Options()
     user_agent = str(os.environ.get('BROWSER_AGENT'))
     options.add_argument("--headless")
@@ -83,9 +80,7 @@ def main():
     # First reply: padding-left: 37px
     # Second reply: padding-left: 58px
 
-    REDDIT_POST = 'https://www.reddit.com/r/AskReddit/comments/y2uefy/what_is_the_worst_thing_about_being_skinny/'
-
-    driver.get(REDDIT_POST)
+    driver.get(post['url'])
 
     comments = driver.find_elements(By.CLASS_NAME, 'Comment')
 
@@ -106,7 +101,6 @@ def main():
             current_comment['style'] = parent_div_style
             current_comment['comment'] = parent_div
             current_comment['text'] = comment.find_element(By.XPATH, './/div[@data-testid="comment"]').get_attribute('innerText')
-            current_comment['user'] = comment.find_element(By.XPATH, './/a[@data-testid="comment_author_link"]').get_attribute('innerText')
             current_comment['image'] = ''
 
             sub_comments.append(current_comment)
@@ -115,8 +109,40 @@ def main():
         except NoSuchElementException:
             continue
 
+    # Create Title for Video
+    title_video = {}
+    title_element = driver.find_element(By.XPATH, './/div[@data-testid="post-container"]')
+    title_video['text'] = post['data']['title'] + post['data']['selftext']
+    title_video['comment'] = title_element
+    create_conversation_video(comments=[title_video], conversation_id=9999)
+
     # Create A Video for Each Conversation
     for conv_id, conv in enumerate(conversations):
         create_conversation_video(comments=conv, conversation_id=conv_id)
 
-main()
+    # Create Final Video
+    files_to_join = ["final_conv_9999.mp4"]
+    files = os.listdir()
+    for file in files:
+            if "final_conv_" in file:
+                files_to_join.append("file '" + file + "'")
+
+    with open('videos.txt', 'w') as f:
+        f.write('\n'.join(files_to_join))
+
+    mp4_video_path = create_video_title("Test video")
+
+    try:
+        subprocess.run(f"ffmpeg -f concat -safe 0 -i videos.txt -c:v libx265 -vtag hvc1 -vf scale=1920:1080 -crf 20 -c:a copy final.mp4", shell=True,
+                           check=True, text=True)
+
+        video_length = get_video_length("final.mp4")
+        selected_song = select_song()
+        create_looped_audio(selected_song, video_length)
+
+        subprocess.run(
+            f'''ffmpeg -i final.mp4 -i conv_song.mp3 -c:v copy \
+            -filter_complex "[0:a]aformat=fltp:44100:stereo,volume=1.25,apad[0a];[1]aformat=fltp:44100:stereo,volume=0.025[1a];[0a][1a]amerge[a]" -map 0:v -map "[a]" -ac 2 \
+            {mp4_video_path}''', shell=True, check=True, text=True)
+    except BaseException:
+        pass
