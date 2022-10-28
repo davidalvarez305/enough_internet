@@ -52,7 +52,11 @@ def main():
                 write_values(SPREADSHEET_ID, 'Tabs!C2:C', values_to_write)
             except BaseException as err:
                 print(f"Error: {err}")
-                delete_files(TTS_VIDEO_DIR)
+
+                # Delete all created directories
+                directories = os.listdir(TTS_VIDEO_DIR)
+                for dir_path in directories:
+                    shutil.rmtree(dir_path)
 
     send_mail(count)
 

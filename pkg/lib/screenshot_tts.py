@@ -6,14 +6,16 @@ import subprocess
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
+from uritemplate import partial
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 from mutagen.mp3 import MP3
 from wand.image import Image
-from constants import MUSIC_DIR
+from constants import MUSIC_DIR, TTS_VIDEO_DIR
 from ..utils.create_scrolling_video import create_scrolling_video
 from ..utils.voice import save
+from multiprocessing import Pool
 
 
 def create_video_title(text):
@@ -70,7 +72,7 @@ def create_image(comments_list, image_output_path):
 # It creates a text-to-speech audio, and concatenates each audio to X length.
 # It screenshots each comment, and stacks them vertically to form a long image.
 # It then creates a video of the length of the text-to-speech audio and creates a scrolling animation of the image.
-def create_conversation_video(comments, conversation_id: int):
+def create_conversation_video(conversation_id: int, comments):
 
     # Conversation Variables
     VIDEO_DIR = TTS_VIDEO_DIR + f"/{conversation_id}/"
@@ -166,8 +168,8 @@ def screenshot_tts(post):
         create_conversation_video(comments=[title_video], conversation_id=9999)
 
         # Create A Video for Each Conversation
-        for conv_id, conv in enumerate(conversations):
-            create_conversation_video(comments=conv, conversation_id=conv_id)
+        with Pool(len(conversations)) as p:
+            print(p.starmap(create_conversation_video, [enumerate(conversations)]))
 
         # Create Final Video
         files_to_join = [f"file '{TITLE_VID_DIR}final_conv_9999.mp4'"]
