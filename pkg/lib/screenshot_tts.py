@@ -39,19 +39,21 @@ def select_song():
 def create_looped_audio(audio_path, video_length):
     audio_length = MP3(audio_path).info.length
     iterations = math.ceil(video_length/audio_length)
+    SONGS_TEXT_PATH = TTS_VIDEO_DIR + "songs.txt"
+    LOOPED_SONG_PATH = TTS_VIDEO_DIR + "conv_song.mp3"
 
     i = 0
     while i < iterations:
-        with open("songs.txt", 'a') as f:
+        with open(SONGS_TEXT_PATH, 'a') as f:
             f.write("file '" + audio_path + "'" + "\n")
         i += 1
 
     try:
         subprocess.run(
-            "ffmpeg -f concat -safe 0 -i songs.txt -c copy conv_song.mp3", shell=True,
+            f"ffmpeg -f concat -safe 0 -i {SONGS_TEXT_PATH} -c copy {LOOPED_SONG_PATH}", shell=True,
             check=True, text=True)
     except BaseException as err:
-        raise Exception("Concatenation of songs failed: ", err)
+        print("Concatenation of songs failed: ", err)
 
 # This functions take a list of screenshots of Reddit comments and stacks them vertically to form a long image.
 def create_image(comments_list, image_output_path):
@@ -71,18 +73,21 @@ def create_image(comments_list, image_output_path):
 def create_conversation_video(comments, conversation_id: int):
 
     # Conversation Variables
-    conversation_text_file = f"conv_{conversation_id}.txt"
-    image_output_path = f'conv_{conversation_id}.png'
-    video_output_path = f'conv_{conversation_id}.mp4'
-    audio_output_path = f'conv_{conversation_id}.mp3'
-    silent_video_output_path = f'silent_conv_{conversation_id}.mp4'
-    final_video_output_path = f'final_conv_{conversation_id}.mp4'
+    VIDEO_DIR = TTS_VIDEO_DIR + f"/{conversation_id}/"
+    conversation_text_file = VIDEO_DIR + f'conv_{conversation_id}.txt'
+    image_output_path = VIDEO_DIR + f'conv_{conversation_id}.png'
+    video_output_path = VIDEO_DIR + f'conv_{conversation_id}.mp4'
+    audio_output_path = VIDEO_DIR + f'conv_{conversation_id}.mp3'
+    silent_video_output_path = VIDEO_DIR + f'silent_conv_{conversation_id}.mp4'
+
+    # The finalized video needs to be in the "TTS Video Directory" so that all of the 'final videos' can be concatenated.
+    final_video_output_path = TTS_VIDEO_DIR + f'final_conv_{conversation_id}.mp4'
 
     # Take Screenshot of Each Comment
     for index, current_comment in enumerate(comments):
-        img_name = f"comment_{index}_conv_{conversation_id}.png"
-        current_comment['comment'].screenshot(img_name)
-        current_comment['image'] = img_name
+        screenshot_path = VIDEO_DIR + f"comment_{index}_conv_{conversation_id}.png"
+        current_comment['comment'].screenshot(screenshot_path)
+        current_comment['image'] = screenshot_path
 
     # Create Stacked Image of Conversation
     create_image(comments, image_output_path)
@@ -90,9 +95,9 @@ def create_conversation_video(comments, conversation_id: int):
     # Create Audio of Each Comment in Conversation
     audio_files = []
     for idx, comment in enumerate(comments):
-        file_name = f'comment_{idx}_conv_{conversation_id}'
-        save(comment['text'], file_name + '.mp3')
-        audio_files.append(file_name + '.mp3')
+        file_name = VIDEO_DIR + f'comment_{idx}_conv_{conversation_id}' + '.mp3'
+        save(comment['text'], file_name)
+        audio_files.append(file_name)
 
     # Concatenate Audio of All Comments
     for audio_file in audio_files:
@@ -153,41 +158,42 @@ def screenshot_tts(post):
 
     # Create Title for Video
     title_video = {}
+    TITLE_VID_DIR = TTS_VIDEO_DIR + f"/9999/"
     try:
         title_element = driver.find_element(By.XPATH, './/div[@data-testid="post-container"]')
         title_video['text'] = post['data']['title'] + post['data']['selftext']
         title_video['comment'] = title_element
         create_conversation_video(comments=[title_video], conversation_id=9999)
-    except NoSuchElementException:
-        print("Title element not found.")
-        pass
 
-    # Create A Video for Each Conversation
-    for conv_id, conv in enumerate(conversations):
-        create_conversation_video(comments=conv, conversation_id=conv_id)
+        # Create A Video for Each Conversation
+        for conv_id, conv in enumerate(conversations):
+            create_conversation_video(comments=conv, conversation_id=conv_id)
 
-    # Create Final Video
-    files_to_join = ["file 'final_conv_9999.mp4'"]
-    files = os.listdir()
-    for file in files:
-            if "final_conv_" in file and not "9999" in file:
-                files_to_join.append("file '" + file + "'")
+        # Create Final Video
+        files_to_join = [f"file '{TITLE_VID_DIR}final_conv_9999.mp4'"]
+        files = os.listdir(TTS_VIDEO_DIR)
+        for file in files:
+                if "final_conv_" in file and not "9999" in file:
+                    file_path = TTS_VIDEO_DIR + file
+                    files_to_join.append("file '" + file_path + "'")
 
-    with open('videos.txt', 'w') as f:
-        f.write('\n'.join(files_to_join))
+        VIDEO_TEXT_FILE_PATH = TTS_VIDEO_DIR  + 'videos.txt'
+        with open(VIDEO_TEXT_FILE_PATH, 'w') as f:
+            f.write('\n'.join(files_to_join))
 
-    mp4_video_path = create_video_title(post['data']['title'])
+        mp4_video_path = TTS_VIDEO_DIR + create_video_title(post['data']['title'])
+        
+        FINAL_VIDEO_PATH = TTS_VIDEO_DIR + "final.mp4"
+        subprocess.run(f"ffmpeg -y -f concat -safe 0 -i {VIDEO_TEXT_FILE_PATH} -c:v libx265 -vtag hvc1 -vf scale=1920:1080 -crf 20 -c:a copy {FINAL_VIDEO_PATH}", shell=True,
+                            check=True, text=True)
 
-    try:
-        subprocess.run(f"ffmpeg -y -f concat -safe 0 -i videos.txt -c:v libx265 -vtag hvc1 -vf scale=1920:1080 -crf 20 -c:a copy final.mp4", shell=True,
-                           check=True, text=True)
-
-        video_length = get_video_length("final.mp4")
+        video_length = get_video_length(FINAL_VIDEO_PATH)
         selected_song = select_song()
         create_looped_audio(selected_song, video_length)
+        LOOPED_SONG_PATH = TTS_VIDEO_DIR + "conv_song.mp3"
 
         subprocess.run(
-            f'''ffmpeg -y -i final.mp4 -i conv_song.mp3 -c:v copy \
+            f'''ffmpeg -y -i {FINAL_VIDEO_PATH} -i {LOOPED_SONG_PATH} -c:v copy \
             -filter_complex "[0:a]aformat=fltp:44100:stereo,volume=1.25,apad[0a];[1]aformat=fltp:44100:stereo,volume=0.025[1a];[0a][1a]amerge[a]" -map 0:v -map "[a]" -ac 2 \
             {mp4_video_path}''', shell=True, check=True, text=True)
     except BaseException:
