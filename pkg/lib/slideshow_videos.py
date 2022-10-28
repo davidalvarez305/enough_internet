@@ -9,9 +9,9 @@ from wand.image import Image
 from wand.drawing import Drawing
 from wand.color import Color
 from mutagen.mp3 import MP3
-from pkg.utils.make_request import make_request
-from utils.delete_files import delete_files
-from utils.upload import upload
+from ..utils.make_request import make_request
+from ..utils.delete_files import delete_files
+from ..utils.upload import upload
 from pathlib import Path
 
 

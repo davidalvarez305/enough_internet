@@ -3,7 +3,7 @@ import os
 import googleapiclient.discovery
 import googleapiclient.errors
 from googleapiclient.http import MediaFileUpload
-import auth
+from .auth import get_auth
 
 scopes = ["https://www.googleapis.com/auth/youtube.upload"]
 
@@ -12,7 +12,7 @@ def upload(path, body):
     # Disable OAuthlib's HTTPS verification when running locally.
     # *DO NOT* leave this option enabled in production.
     os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
-    credentials = auth.get_auth()
+    credentials = get_auth()
 
     youtube = googleapiclient.discovery.build(
         "youtube", "v3", credentials=credentials)

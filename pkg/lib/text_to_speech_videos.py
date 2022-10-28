@@ -1,10 +1,10 @@
 import json
 import os
 from pathlib import Path
-from screenshot_tts import screenshot_tts
-from utils.delete_files import delete_files
-from utils.make_request import make_request
-from utils.upload import upload
+from .screenshot_tts import screenshot_tts
+from ..utils.delete_files import delete_files
+from ..utils.make_request import make_request
+from ..utils.upload import upload
 
 
 def text_to_speech_videos(video):

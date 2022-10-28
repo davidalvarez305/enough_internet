@@ -3,14 +3,14 @@ import base64
 from datetime import datetime
 from email.message import EmailMessage
 import os
-import auth
+from .auth import get_auth
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 
 def send_mail(count):
     try:
-        credentials = auth.get_auth()
+        credentials = get_auth()
         service = build('gmail', 'v1', credentials=credentials)
 
         message = EmailMessage()

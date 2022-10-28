@@ -12,8 +12,8 @@ from selenium.webdriver.common.by import By
 from mutagen.mp3 import MP3
 from wand.image import Image
 from constants import MUSIC_DIR
-from utils.create_scrolling_video import create_scrolling_video
-from utils.voice import save
+from ..utils.create_scrolling_video import create_scrolling_video
+from ..utils.voice import save
 
 
 def create_video_title(text):

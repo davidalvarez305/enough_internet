@@ -2,7 +2,7 @@ import json
 import random
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
-import auth
+from .auth import get_auth
 
 
 def convert_sheets_values(values):
@@ -62,7 +62,7 @@ def convert_to_write_values(data):
 
 def write_values(spreadsheet_id, range, values):
     try:
-        credentials = auth.get_auth()
+        credentials = get_auth()
         service = build('sheets', 'v4', credentials=credentials)
 
         sheet = service.spreadsheets()
@@ -81,7 +81,7 @@ def write_values(spreadsheet_id, range, values):
 
 def get_values(spreadsheet_id, range):
     try:
-        credentials = auth.get_auth()
+        credentials = get_auth()
         service = build('sheets', 'v4', credentials=credentials)
 
         sheet = service.spreadsheets()
@@ -101,7 +101,7 @@ def get_values(spreadsheet_id, range):
 
 def get_tabs(spreadsheet_id):
     try:
-        credentials = auth.get_auth()
+        credentials = get_auth()
         service = build('sheets', 'v4', credentials=credentials)
 
         sheets = service.spreadsheets().get(

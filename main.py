@@ -1,4 +1,5 @@
 from dotenv import load_dotenv
+from constants import COMPILATION_VIDEO_DIR, SLIDESHOW_VIDEO_DIR, TTS_VIDEO_DIR
 from pkg.utils.gmail import send_mail
 from pkg.lib.compilation_video import compilation_video
 from pkg.lib.text_to_speech_videos import text_to_speech_videos
@@ -29,7 +30,7 @@ def main():
                 write_values(SPREADSHEET_ID, 'Tabs!C2:C', values_to_write)
             except BaseException as err:
                 print(f"Unexpected {err=}, {type(err)=}")
-                delete_files()
+                delete_files(SLIDESHOW_VIDEO_DIR)
         if "internet clips" in video['series'] or "laughing uncontrollably" in video['series']:
             try:
                 video['body']['snippet']['title'] = select_random_title(
@@ -41,7 +42,7 @@ def main():
                 write_values(SPREADSHEET_ID, 'Tabs!C2:C', values_to_write)
             except BaseException as err:
                 print(f"Unexpected {err=}, {type(err)=}")
-                delete_files()
+                delete_files(COMPILATION_VIDEO_DIR)
         else:
             try:
                 vids_uploaded = text_to_speech_videos(video)
@@ -51,7 +52,7 @@ def main():
                 write_values(SPREADSHEET_ID, 'Tabs!C2:C', values_to_write)
             except BaseException as err:
                 print(f"Error: {err}")
-                delete_files()
+                delete_files(TTS_VIDEO_DIR)
 
     send_mail(count)
 
