@@ -32,10 +32,3 @@ def create_scrolling_video(image_output_path, video_output_path, silent_video_ou
                      f"{audio_input_path}", f"{final_video_output_path}"], stderr=STDOUT, timeout=120)
     except BaseException as err:
         print(err)
-
-
-def delete_files():
-    del_files = os.listdir()
-    for df in del_files:
-        if ".txt" in df or ".mp4" in df or ".png" in df or ".jpg" in df or "conv_" in df:
-            os.remove(df)

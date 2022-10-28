@@ -3,10 +3,10 @@ import youtube_dl
 import os
 from os import listdir
 import subprocess
-from make_request import make_request
-from utils import delete_files
-from upload import upload
+from utils.make_request import make_request
 from pathlib import Path
+from utils.upload import upload
+from utils.delete_files import delete_files
 
 
 def download(video):

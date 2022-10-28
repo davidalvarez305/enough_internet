@@ -2,8 +2,8 @@ import json
 import os
 from pathlib import Path
 from screenshot_tts import screenshot_tts
-from utils import delete_files
-from make_request import make_request
+from utils.delete_files import delete_files
+from utils.make_request import make_request
 from upload import upload
 
 

@@ -1,11 +1,11 @@
 from dotenv import load_dotenv
-from download import download
 from gmail import send_mail
-from pics import get_pics
+from lib.download import download
+from lib.tts import tts
 import os
 from sheets import convert_sheets_values, convert_titles, convert_to_write_values, get_values, select_random_title, write_values
-from tts import tts
-from utils import delete_files
+from utils.delete_files import delete_files
+from lib.pics import get_pics
 
 
 def main():
