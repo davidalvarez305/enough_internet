@@ -6,13 +6,12 @@ import subprocess
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
-from uritemplate import partial
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 from mutagen.mp3 import MP3
 from wand.image import Image
-from constants import MUSIC_DIR, TTS_VIDEO_DIR
+from constants import MUSIC_DIR
 from ..utils.create_scrolling_video import create_scrolling_video
 from ..utils.voice import save
 from multiprocessing import Pool
@@ -38,11 +37,11 @@ def select_song():
     return songs[random_index]
 
 # Looped audio repeats a randomly selected song for the duration of the video ('video_length')
-def create_looped_audio(audio_path, video_length):
+def create_looped_audio(audio_path, video_length, video_directory):
     audio_length = MP3(audio_path).info.length
     iterations = math.ceil(video_length/audio_length)
-    SONGS_TEXT_PATH = TTS_VIDEO_DIR + "songs.txt"
-    LOOPED_SONG_PATH = TTS_VIDEO_DIR + "conv_song.mp3"
+    SONGS_TEXT_PATH = video_directory + "songs.txt"
+    LOOPED_SONG_PATH = video_directory + "conv_song.mp3"
 
     i = 0
     while i < iterations:
@@ -75,7 +74,8 @@ def create_image(comments_list, image_output_path):
 def create_conversation_video(conversation_id: int, comments):
 
     # Conversation Variables
-    VIDEO_DIR = TTS_VIDEO_DIR + f"/{conversation_id}/"
+    conversation_id = comments[0]['conversation_id']
+    VIDEO_DIR = comments[0]['video_directory'] + f"/{conversation_id}/"
     conversation_text_file = VIDEO_DIR + f'conv_{conversation_id}.txt'
     image_output_path = VIDEO_DIR + f'conv_{conversation_id}.png'
     video_output_path = VIDEO_DIR + f'conv_{conversation_id}.mp4'
@@ -83,7 +83,7 @@ def create_conversation_video(conversation_id: int, comments):
     silent_video_output_path = VIDEO_DIR + f'silent_conv_{conversation_id}.mp4'
 
     # The finalized video needs to be in the "TTS Video Directory" so that all of the 'final videos' can be concatenated.
-    final_video_output_path = TTS_VIDEO_DIR + f'final_conv_{conversation_id}.mp4'
+    final_video_output_path = comments[0]['video_directory'] + f'final_conv_{conversation_id}.mp4'
 
     # Take Screenshot of Each Comment
     for index, current_comment in enumerate(comments):
@@ -119,7 +119,7 @@ def create_conversation_video(conversation_id: int, comments):
     )
 
 
-def screenshot_tts(post):
+def screenshot_tts(post, video_directory):
     options = Options()
     user_agent = str(os.environ.get('BROWSER_AGENT'))
     options.add_argument("--headless")
@@ -153,6 +153,7 @@ def screenshot_tts(post):
             current_comment['comment'] = parent_div
             current_comment['text'] = comment.find_element(By.XPATH, './/div[@data-testid="comment"]').get_attribute('innerText')
             current_comment['image'] = ''
+            current_comment['video_directory'] = video_directory
 
             sub_comments.append(current_comment)
         except NoSuchElementException:
@@ -160,7 +161,7 @@ def screenshot_tts(post):
 
     # Create Title for Video
     title_video = {}
-    TITLE_VID_DIR = TTS_VIDEO_DIR + f"/9999/"
+    TITLE_VID_DIR = video_directory + f"/9999/"
     try:
         title_element = driver.find_element(By.XPATH, './/div[@data-testid="post-container"]')
         title_video['text'] = post['data']['title'] + post['data']['selftext']
@@ -173,26 +174,26 @@ def screenshot_tts(post):
 
         # Create Final Video
         files_to_join = [f"file '{TITLE_VID_DIR}final_conv_9999.mp4'"]
-        files = os.listdir(TTS_VIDEO_DIR)
+        files = os.listdir(video_directory)
         for file in files:
                 if "final_conv_" in file and not "9999" in file:
-                    file_path = TTS_VIDEO_DIR + file
+                    file_path = video_directory + file
                     files_to_join.append("file '" + file_path + "'")
 
-        VIDEO_TEXT_FILE_PATH = TTS_VIDEO_DIR  + 'videos.txt'
+        VIDEO_TEXT_FILE_PATH = video_directory  + 'videos.txt'
         with open(VIDEO_TEXT_FILE_PATH, 'w') as f:
             f.write('\n'.join(files_to_join))
 
-        mp4_video_path = TTS_VIDEO_DIR + create_video_title(post['data']['title'])
+        mp4_video_path = video_directory + create_video_title(post['data']['title'])
         
-        FINAL_VIDEO_PATH = TTS_VIDEO_DIR + "final.mp4"
+        FINAL_VIDEO_PATH = video_directory + "final.mp4"
         subprocess.run(f"ffmpeg -y -f concat -safe 0 -i {VIDEO_TEXT_FILE_PATH} -c:v libx265 -vtag hvc1 -vf scale=1920:1080 -crf 20 -c:a copy {FINAL_VIDEO_PATH}", shell=True,
                             check=True, text=True)
 
         video_length = get_video_length(FINAL_VIDEO_PATH)
         selected_song = select_song()
-        create_looped_audio(selected_song, video_length)
-        LOOPED_SONG_PATH = TTS_VIDEO_DIR + "conv_song.mp3"
+        create_looped_audio(selected_song, video_length, video_directory)
+        LOOPED_SONG_PATH = video_directory + "conv_song.mp3"
 
         subprocess.run(
             f'''ffmpeg -y -i {FINAL_VIDEO_PATH} -i {LOOPED_SONG_PATH} -c:v copy \

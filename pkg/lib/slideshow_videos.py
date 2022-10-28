@@ -9,6 +9,8 @@ from wand.image import Image
 from wand.drawing import Drawing
 from wand.color import Color
 from mutagen.mp3 import MP3
+
+from constants import MUSIC_DIR, SLIDESHOW_VIDEO_DIR
 from ..utils.make_request import make_request
 from ..utils.delete_files import delete_files
 from ..utils.upload import upload
@@ -16,12 +18,13 @@ from pathlib import Path
 
 
 def select_random_inspiring_song():
-    files = os.listdir()
+    files = os.listdir(MUSIC_DIR)
 
     songs = []
     for f in files:
+        file_path = MUSIC_DIR + f
         if "inspiring" in f:
-            songs.append(f)
+            songs.append(file_path)
 
     random_index = randrange(len(songs))
 
@@ -40,7 +43,7 @@ def slideshow_videos(video):
     for post in posts['data']['children']:
         if ".jpg" in post['data']['url'] and "nsfw" not in post['data']['thumbnail']:
             img_data = requests.get(post['data']['url']).content
-            img_path = post['data']['author'] + '.jpg'
+            img_path = SLIDESHOW_VIDEO_DIR + post['data']['author'] + '.jpg'
             post_title = post['data']['title']
 
             # User Variables
@@ -84,26 +87,27 @@ def slideshow_videos(video):
 
     # Concatenate Images & Create Final Video
     num_images = 0
-    for f in listdir():
+    for f in listdir(SLIDESHOW_VIDEO_DIR):
         if ".jpg" in f:
             num_images += 1
+
     selected_song = select_random_inspiring_song()
     audio_length = MP3(selected_song).info.length
     frame_rate = num_images / audio_length
-    vid_name = video['body']['snippet']['title'].replace(" ", "_") + ".mp4"
+    video_output_path = SLIDESHOW_VIDEO_DIR + video['body']['snippet']['title'].replace(" ", "_") + ".mp4"
 
-    cmd = f"cat *.jpg | ffmpeg -framerate {frame_rate} -f image2pipe -i - -i {selected_song} -acodec copy -vf scale=1080:-2 {vid_name}"
+    cmd = f"cat {SLIDESHOW_VIDEO_DIR}*.jpg | ffmpeg -framerate {frame_rate} -f image2pipe -i - -i {selected_song} -acodec copy -vf scale=1080:-2 {video_output_path}"
     subprocess.run(cmd, shell=True, check=True, text=True)
 
     try:
         desc = "Huge props to the following users: " + ", \n".join(users)
         video['body']['snippet']['description'] = desc
-        upload(vid_name, video['body'])
+        upload(video_output_path, video['body'])
 
-        os.replace(vid_name, str(Path.home()) + "/vids/" + vid_name)
+        os.replace(video_output_path, str(Path.home()) + "/vids/" + video_output_path)
 
-        delete_files()
+        delete_files(SLIDESHOW_VIDEO_DIR)
 
     except BaseException as err:
-        os.replace(vid_name, str(Path.home()) + "/vids/" + vid_name)
+        os.replace(video_output_path, str(Path.home()) + "/vids/" + video_output_path)
         raise Exception("Video upload failed: ", err)
