@@ -11,8 +11,9 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 from mutagen.mp3 import MP3
 from wand.image import Image
-from utils import create_scrolling_video
-from voice import save
+from constants import MUSIC_DIR
+from utils.create_scrolling_video import create_scrolling_video
+from utils.voice import save
 
 
 def create_video_title(text):
@@ -30,18 +31,11 @@ def get_video_length(video_path):
 
 
 def select_song():
-    files = os.listdir()
-
-    songs = []
-    for f in files:
-        if ".mp3" in f and "conv_" not in f:
-            songs.append(f)
-
+    songs = os.listdir(MUSIC_DIR)
     random_index = randrange(len(songs))
-
     return songs[random_index]
 
-
+# Looped audio repeats a randomly selected song for the duration of the video ('video_length')
 def create_looped_audio(audio_path, video_length):
     audio_length = MP3(audio_path).info.length
     iterations = math.ceil(video_length/audio_length)
@@ -59,6 +53,7 @@ def create_looped_audio(audio_path, video_length):
     except BaseException as err:
         raise Exception("Concatenation of songs failed: ", err)
 
+# This functions take a list of screenshots of Reddit comments and stacks them vertically to form a long image.
 def create_image(comments_list, image_output_path):
     first_image = comments_list[0]
     im = Image(filename=first_image['image'])
@@ -69,6 +64,10 @@ def create_image(comments_list, image_output_path):
         output.smush(True, 5)
         output.save(filename=image_output_path)
 
+# This takes a 'conversation' which is a list of Reddit comments.
+# It creates a text-to-speech audio, and concatenates each audio to X length.
+# It screenshots each comment, and stacks them vertically to form a long image.
+# It then creates a video of the length of the text-to-speech audio and creates a scrolling animation of the image.
 def create_conversation_video(comments, conversation_id: int):
 
     # Conversation Variables

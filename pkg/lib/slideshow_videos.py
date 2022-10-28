@@ -10,8 +10,8 @@ from wand.drawing import Drawing
 from wand.color import Color
 from mutagen.mp3 import MP3
 from pkg.utils.make_request import make_request
-from utils import delete_files
-from upload import upload
+from utils.delete_files import delete_files
+from utils.upload import upload
 from pathlib import Path
 
 
@@ -28,7 +28,7 @@ def select_random_inspiring_song():
     return songs[random_index]
 
 
-def get_pics(video):
+def slideshow_videos(video):
     source_url = video['source'] + "?limit=" + str(video['limit'])
 
     resp = make_request(source_url)

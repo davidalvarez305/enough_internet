@@ -8,8 +8,8 @@ from pathlib import Path
 from utils.upload import upload
 from utils.delete_files import delete_files
 
-
-def download(video):
+# Compilation video downloads a list of videos from Reddit and uses FFMPEG to concatenate them on a blurred background.
+def compilation_video(video):
     source_url = video['source'] + "?limit=" + str(video['limit'])
     resp = make_request(source_url)
     posts = json.loads(resp)

@@ -4,10 +4,10 @@ from pathlib import Path
 from screenshot_tts import screenshot_tts
 from utils.delete_files import delete_files
 from utils.make_request import make_request
-from upload import upload
+from utils.upload import upload
 
 
-def tts(video):
+def text_to_speech_videos(video):
     count = 0
 
     source_url = video['source'] + "?limit=" + str(video['limit'])
