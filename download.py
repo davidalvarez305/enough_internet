@@ -5,7 +5,7 @@ from os import listdir
 import subprocess
 from make_request import make_request
 from utils import delete_files
-from youtube import upload
+from upload import upload
 from pathlib import Path
 
 

@@ -11,7 +11,7 @@ from wand.color import Color
 from mutagen.mp3 import MP3
 from make_request import make_request
 from utils import delete_files
-from youtube import upload
+from upload import upload
 from pathlib import Path
 
 

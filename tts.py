@@ -4,7 +4,7 @@ from pathlib import Path
 from screenshot_tts import screenshot_tts
 from utils import delete_files
 from make_request import make_request
-from youtube import upload
+from upload import upload
 
 
 def tts(video):
