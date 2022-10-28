@@ -3,9 +3,11 @@ import os
 import requests
 from oauth2client.client import OAuth2Credentials
 
+from constants import CREDENTIALS_DIR
 
+# This refreshes the auth token from Google's API.
 def get_auth():
-    f = open(str(os.environ.get('SECRETS_FILE')))
+    f = open(CREDENTIALS_DIR + str(os.environ.get('SECRETS_FILE')))
     data = json.load(f)
 
     client_id = data['web']['client_id']

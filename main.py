@@ -1,11 +1,11 @@
 from dotenv import load_dotenv
-from gmail import send_mail
-from lib.download import download
-from lib.tts import tts
+from pkg.utils.gmail import send_mail
+from pkg.lib.compilation_video import compilation_video
+from pkg.lib.text_to_speech_videos import text_to_speech_videos
 import os
-from sheets import convert_sheets_values, convert_titles, convert_to_write_values, get_values, select_random_title, write_values
-from utils.delete_files import delete_files
-from lib.pics import get_pics
+from pkg.utils.sheets import convert_sheets_values, convert_titles, convert_to_write_values, get_values, select_random_title, write_values
+from pkg.utils.delete_files import delete_files
+from pkg.lib.slideshow_videos import slideshow_videos
 
 
 def main():
@@ -22,7 +22,7 @@ def main():
             try:
                 video['body']['snippet']['title'] = select_random_title(
                     title_options, video['series'])
-                get_pics(video)
+                slideshow_videos(video)
                 count += 1
 
                 values_to_write = convert_to_write_values(data)
@@ -34,7 +34,7 @@ def main():
             try:
                 video['body']['snippet']['title'] = select_random_title(
                     title_options, video['series'])
-                download(video)
+                compilation_video(video)
                 count += 1
 
                 values_to_write = convert_to_write_values(data)
@@ -44,7 +44,7 @@ def main():
                 delete_files()
         else:
             try:
-                vids_uploaded = tts(video)
+                vids_uploaded = text_to_speech_videos(video)
                 count += vids_uploaded
 
                 values_to_write = convert_to_write_values(data)
