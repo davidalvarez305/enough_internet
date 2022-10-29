@@ -1,3 +1,4 @@
+import shutil
 from dotenv import load_dotenv
 from constants import COMPILATION_VIDEO_DIR, SLIDESHOW_VIDEO_DIR, TTS_VIDEO_DIR
 from pkg.utils.gmail import send_mail
