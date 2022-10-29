@@ -72,7 +72,7 @@ def select_random_inspiring_song():
 
     random_index = randrange(len(songs))
 
-    return songs[random_index]
+    return MUSIC_DIR + songs[random_index]
 
 
 def slideshow_videos(video):

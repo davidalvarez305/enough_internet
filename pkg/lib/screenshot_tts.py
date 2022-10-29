@@ -12,7 +12,7 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 from mutagen.mp3 import MP3
 from wand.image import Image
-from constants import MUSIC_DIR, TTS_VIDEO_DIR
+from constants import MUSIC_DIR
 from ..utils.create_scrolling_video import create_scrolling_video
 from ..utils.voice import save
 from multiprocess.pool import ThreadPool
@@ -35,7 +35,7 @@ def get_video_length(video_path):
 def select_song():
     songs = os.listdir(MUSIC_DIR)
     random_index = randrange(len(songs))
-    return songs[random_index]
+    return MUSIC_DIR + songs[random_index]
 
 # Looped audio repeats a randomly selected song for the duration of the video ('video_length')
 def create_looped_audio(audio_path, video_length, video_directory):
@@ -181,14 +181,13 @@ def screenshot_tts(post, video_directory):
             print(p.starmap(create_conversation_video, [(index, comments) for index, comments  in enumerate(conversations)]))
 
         # Create Final Video
-        files_to_join = [f"file '{TITLE_VID_DIR}final_conv_9999.mp4'"]
+        files_to_join = [f"file '{video_directory}final_conv_9999.mp4'"]
         files = os.listdir(video_directory)
+
         for file in files:
-            final_files = os.listdir(TTS_VIDEO_DIR + file)
-            for f in final_files:
-                if "final_conv_" in f and not "9999" in f:
-                    file_path = video_directory + f
-                    files_to_join.append("file '" + file_path + "'")
+            if "final_conv_" in file and not "9999" in file:
+                file_path = video_directory + file
+                files_to_join.append("file '" + file_path + "'")
 
         VIDEO_TEXT_FILE_PATH = video_directory  + 'videos.txt'
         with open(VIDEO_TEXT_FILE_PATH, 'w') as f:

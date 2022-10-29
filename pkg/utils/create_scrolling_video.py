@@ -37,4 +37,4 @@ def create_scrolling_video(image_output_path, video_output_path, silent_video_ou
         """, shell=True, check=True, text=True)
 
     except BaseException as err:
-        print("Error: ", err)
+        raise Exception(err)
