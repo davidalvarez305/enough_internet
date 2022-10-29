@@ -1,4 +1,6 @@
+from functools import partial
 import json
+from multiprocess import Pool
 import os
 from pathlib import Path
 import shutil
@@ -19,16 +21,15 @@ def text_to_speech_videos(video):
 
     posts = json.loads(resp)
 
-    for index, post in enumerate(posts['data']['children']):
+    reddit_posts = posts['data']['children']
+
+    def create_video(index, post):
         title = post['data']['title']
         mp4_video_path = ""
-        video_dir_name = f"video_{index}"
-        os.makedirs(video_dir_name)
-        video_directory = TTS_VIDEO_DIR + video_dir_name + "/"
+        video_dir_name = TTS_VIDEO_DIR + f"video_{index}"
+        mp4_video_path = screenshot_tts(post, video_dir_name + "/")
 
         try:
-            mp4_video_path = screenshot_tts(post, video_directory)
-
             youtube_title = ""
 
             if len(title) > 100:
@@ -43,13 +44,14 @@ def text_to_speech_videos(video):
             count += 1
         except BaseException as err:
             print(err)
-            continue
-        finally:
-            os.replace(mp4_video_path, str(Path.home()) +
-                       "/vids/" + mp4_video_path)
 
-            dirs = os.listdir(video_directory)
+            dirs = os.listdir(video_dir_name + "/")
             for dir_path in dirs:
-                shutil.rmtree(dir_path)
+                shutil.rmtree(video_dir_name + "/" + dir_path)
+       
+
+    with Pool(len(reddit_posts)) as p:
+        print(p.starmap(create_video, [(index, post) for index, post  in enumerate(reddit_posts)]))
+    
 
     return count

@@ -11,10 +11,10 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 from mutagen.mp3 import MP3
 from wand.image import Image
-from constants import MUSIC_DIR
+from constants import MUSIC_DIR, TTS_VIDEO_DIR
 from ..utils.create_scrolling_video import create_scrolling_video
 from ..utils.voice import save
-from multiprocessing import Pool
+from multiprocess import Pool
 
 
 def create_video_title(text):
@@ -71,11 +71,16 @@ def create_image(comments_list, image_output_path):
 # It creates a text-to-speech audio, and concatenates each audio to X length.
 # It screenshots each comment, and stacks them vertically to form a long image.
 # It then creates a video of the length of the text-to-speech audio and creates a scrolling animation of the image.
-def create_conversation_video(conversation_id: int, comments):
+def create_conversation_video(conversation_id, comments):
+    print('conv: ', conversation_id)
+    print('comments: ', comments)
+
+    # Create video directory
+    VIDEO_DIR = comments[0]['video_directory'] + f"{conversation_id}/"
+    if not os.path.exists(VIDEO_DIR):
+        os.makedirs(VIDEO_DIR)
 
     # Conversation Variables
-    conversation_id = comments[0]['conversation_id']
-    VIDEO_DIR = comments[0]['video_directory'] + f"/{conversation_id}/"
     conversation_text_file = VIDEO_DIR + f'conv_{conversation_id}.txt'
     image_output_path = VIDEO_DIR + f'conv_{conversation_id}.png'
     video_output_path = VIDEO_DIR + f'conv_{conversation_id}.mp4'
@@ -161,16 +166,19 @@ def screenshot_tts(post, video_directory):
 
     # Create Title for Video
     title_video = {}
-    TITLE_VID_DIR = video_directory + f"/9999/"
+    TITLE_VID_DIR = video_directory + f"9999/"
     try:
+        if not os.path.exists(TITLE_VID_DIR):
+            os.makedirs(TITLE_VID_DIR)
         title_element = driver.find_element(By.XPATH, './/div[@data-testid="post-container"]')
         title_video['text'] = post['data']['title'] + post['data']['selftext']
         title_video['comment'] = title_element
+        title_video['video_directory'] = video_directory
         create_conversation_video(comments=[title_video], conversation_id=9999)
 
         # Create A Video for Each Conversation
         with Pool(len(conversations)) as p:
-            print(p.starmap(create_conversation_video, [enumerate(conversations)]))
+            print(p.starmap(create_conversation_video, [(idx, comments) for idx, comments in enumerate(conversations)]))
 
         # Create Final Video
         files_to_join = [f"file '{TITLE_VID_DIR}final_conv_9999.mp4'"]
@@ -199,7 +207,8 @@ def screenshot_tts(post, video_directory):
             f'''ffmpeg -y -i {FINAL_VIDEO_PATH} -i {LOOPED_SONG_PATH} -c:v copy \
             -filter_complex "[0:a]aformat=fltp:44100:stereo,volume=1.25,apad[0a];[1]aformat=fltp:44100:stereo,volume=0.025[1a];[0a][1a]amerge[a]" -map 0:v -map "[a]" -ac 2 \
             {mp4_video_path}''', shell=True, check=True, text=True)
-    except BaseException:
-        pass
-    finally:
+
         return mp4_video_path
+    except BaseException as err:
+        print("Err: ", err)
+        raise Exception("Could not create video.")

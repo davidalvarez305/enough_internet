@@ -116,5 +116,3 @@ def slideshow_videos(video):
 
     except BaseException as err:
         print("Video upload failed: ", err)
-    finally:
-        os.replace(video_output_path, str(Path.home()) + "/vids/" + video_output_path)

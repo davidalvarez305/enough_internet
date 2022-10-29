@@ -32,6 +32,8 @@ def main():
             except BaseException as err:
                 print(f"Unexpected {err=}, {type(err)=}")
                 delete_files(SLIDESHOW_VIDEO_DIR)
+
+                continue
         if "internet clips" in video['series'] or "laughing uncontrollably" in video['series']:
             try:
                 video['body']['snippet']['title'] = select_random_title(
@@ -44,6 +46,8 @@ def main():
             except BaseException as err:
                 print(f"Unexpected {err=}, {type(err)=}")
                 delete_files(COMPILATION_VIDEO_DIR)
+
+                continue
         else:
             try:
                 vids_uploaded = text_to_speech_videos(video)
@@ -57,7 +61,9 @@ def main():
                 # Delete all created directories
                 directories = os.listdir(TTS_VIDEO_DIR)
                 for dir_path in directories:
-                    shutil.rmtree(dir_path)
+                    shutil.rmtree(TTS_VIDEO_DIR + dir_path)
+
+                continue
 
     send_mail(count)
 

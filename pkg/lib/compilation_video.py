@@ -83,5 +83,3 @@ def compilation_video(video):
 
     except BaseException as err:
         print("Video upload failed: ", err)
-    finally:
-        os.replace(vid_name, str(Path.home()) + "/vids/" + vid_name)
