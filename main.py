@@ -1,3 +1,4 @@
+from genericpath import isdir
 import shutil
 from dotenv import load_dotenv
 from constants import COMPILATION_VIDEO_DIR, SLIDESHOW_VIDEO_DIR, TTS_VIDEO_DIR
@@ -60,8 +61,10 @@ def main():
 
                 # Delete all created directories
                 directories = os.listdir(TTS_VIDEO_DIR)
-                for dir_path in directories:
-                    shutil.rmtree(TTS_VIDEO_DIR + dir_path)
+                for path in directories:
+                    dir_path = TTS_VIDEO_DIR + path
+                    if os.path.isdir(dir_path):
+                        shutil.rmtree(dir_path)
 
                 continue
 
