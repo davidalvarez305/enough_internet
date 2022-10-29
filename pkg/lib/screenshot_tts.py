@@ -12,10 +12,10 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 from mutagen.mp3 import MP3
 from wand.image import Image
-from constants import MUSIC_DIR
+from constants import MUSIC_DIR, TTS_VIDEO_DIR
 from ..utils.create_scrolling_video import create_scrolling_video
 from ..utils.voice import save
-from multiprocess import Pool
+from multiprocess.pool import ThreadPool
 
 
 def create_video_title(text):
@@ -169,6 +169,7 @@ def screenshot_tts(post, video_directory):
     try:
         if not os.path.exists(TITLE_VID_DIR):
             os.makedirs(TITLE_VID_DIR)
+
         title_element = driver.find_element(By.XPATH, './/div[@data-testid="post-container"]')
         title_video['text'] = post['data']['title'] + post['data']['selftext']
         title_video['comment'] = title_element
@@ -176,15 +177,17 @@ def screenshot_tts(post, video_directory):
         create_conversation_video(comments=[title_video], conversation_id=9999)
 
         # Create A Video for Each Conversation
-        with Pool(len(conversations)) as p:
-            print(p.starmap(create_conversation_video, [(idx, comments) for idx, comments in enumerate(conversations)]))
+        with ThreadPool(len(conversations)) as p:
+            print(p.starmap(create_conversation_video, [(index, comments) for index, comments  in enumerate(conversations)]))
 
         # Create Final Video
         files_to_join = [f"file '{TITLE_VID_DIR}final_conv_9999.mp4'"]
         files = os.listdir(video_directory)
         for file in files:
-                if "final_conv_" in file and not "9999" in file:
-                    file_path = video_directory + file
+            final_files = os.listdir(TTS_VIDEO_DIR + file)
+            for f in final_files:
+                if "final_conv_" in f and not "9999" in f:
+                    file_path = video_directory + f
                     files_to_join.append("file '" + file_path + "'")
 
         VIDEO_TEXT_FILE_PATH = video_directory  + 'videos.txt'

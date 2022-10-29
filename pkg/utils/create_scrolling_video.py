@@ -1,5 +1,6 @@
 import os
 import subprocess
+import sys
 from mutagen.mp3 import MP3
 from subprocess import STDOUT, check_output
 from wand.image import Image
@@ -28,8 +29,12 @@ def create_scrolling_video(image_output_path, video_output_path, silent_video_ou
                 ffmpeg -y -i {video_output_path} -f lavfi -i anullsrc -c:v copy -c:a aac -shortest {silent_video_output_path}
             """, shell=True, check=True, text=True)
 
-        # Put together video and TTS audio
-        check_output(["sh", f"{UTILS_DIR}create_final_video.sh", f"{silent_video_output_path}",
-                     f"{audio_input_path}", f"{final_video_output_path}"], stderr=STDOUT, timeout=120)
+         # Put together video and TTS audio
+        subprocess.run(f"""
+            ffmpeg -i {silent_video_output_path} -i {audio_input_path} -c:v copy \
+            -filter_complex "[0:a]aformat=fltp:44100:stereo,apad[0a];[1]aformat=fltp:44100:stereo,volume=0.75[1a];[0a][1a]amerge[a]" \
+            -map 0:v -map "[a]" -ac 2 {final_video_output_path}
+        """, shell=True, check=True, text=True)
+
     except BaseException as err:
-        print(err)
+        print("Error: ", err)

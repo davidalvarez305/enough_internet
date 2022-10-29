@@ -7,7 +7,6 @@ import shutil
 
 from constants import TTS_VIDEO_DIR
 from .screenshot_tts import screenshot_tts
-from ..utils.delete_files import delete_files
 from ..utils.make_request import make_request
 from ..utils.upload import upload
 
