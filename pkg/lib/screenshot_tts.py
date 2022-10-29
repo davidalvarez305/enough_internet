@@ -90,13 +90,14 @@ def create_conversation_video(conversation_id, comments):
     final_video_output_path = comments[0]['video_directory'] + f'final_conv_{conversation_id}.mp4'
 
     # Take Screenshot of Each Comment
-    for index, current_comment in enumerate(comments):
-        screenshot_path = VIDEO_DIR + f"comment_{index}_conv_{conversation_id}.png"
-        current_comment['comment'].screenshot(screenshot_path)
-        current_comment['image'] = screenshot_path
+    if not conversation_id == 9999:
+        for index, current_comment in enumerate(comments):
+            screenshot_path = VIDEO_DIR + f"comment_{index}_conv_{conversation_id}.png"
+            current_comment['comment'].screenshot(screenshot_path)
+            current_comment['image'] = screenshot_path
 
-    # Create Stacked Image of Conversation
-    create_image(comments, image_output_path)
+        # Create Stacked Image of Conversation
+        create_image(comments, image_output_path)
 
     # Create Audio of Each Comment in Conversation
     audio_files = []
@@ -170,18 +171,39 @@ def screenshot_tts(post, video_directory):
         if not os.path.exists(TITLE_VID_DIR):
             os.makedirs(TITLE_VID_DIR)
 
-        title_element = driver.find_element(By.XPATH, './/div[@data-testid="post-container"]')
-        title_video['text'] = post['data']['title'] + post['data']['selftext']
-        title_video['comment'] = title_element
-        title_video['video_directory'] = video_directory
-        create_conversation_video(comments=[title_video], conversation_id=9999)
+        title_element = driver.find_elements(By.XPATH, './/div[@data-testid="post-container"]')
+        
+        if len(title_element) > 0:
+            title_video['text'] = post['data']['title'] + post['data']['selftext']
+            title_video['comment'] = title_element[0]
+            title_video['video_directory'] = video_directory
+
+            # Create stacked image of the post title
+            screenshots = []
+
+            # For long posts, they will usually be broken up by paragraph tags.
+            # This function takes a screenshot of paragraph tags and stacks them into a single image.
+            paragraph_tags = title_element[0].find_elements(By.TAG_NAME, 'p')
+            
+            for index, tag in enumerate(paragraph_tags):
+                img_path = TITLE_VID_DIR + f'post_title_tag_{index}.png'
+                tag.screenshot(img_path)
+                screenshots.append({ 'image': img_path })
+
+            create_image(screenshots, f"{video_directory}/9999/conv_9999.png")
+
+            create_conversation_video(comments=[title_video], conversation_id=9999)
 
         # Create A Video for Each Conversation
         with ThreadPool(len(conversations)) as p:
             print(p.starmap(create_conversation_video, [(index, comments) for index, comments  in enumerate(conversations)]))
 
         # Create Final Video
-        files_to_join = [f"file '{video_directory}final_conv_9999.mp4'"]
+        files_to_join = []
+
+        if len(title_element) > 0:
+            files_to_join.append(f"file '{video_directory}final_conv_9999.mp4'")
+
         files = os.listdir(video_directory)
 
         for file in files:
