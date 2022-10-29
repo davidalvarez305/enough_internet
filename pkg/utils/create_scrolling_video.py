@@ -3,6 +3,7 @@ import subprocess
 from mutagen.mp3 import MP3
 from subprocess import STDOUT, check_output
 from wand.image import Image
+from constants import UTILS_DIR
 
 def get_image_height(image_path):
     with Image(filename=image_path) as i:
@@ -28,7 +29,7 @@ def create_scrolling_video(image_output_path, video_output_path, silent_video_ou
             """, shell=True, check=True, text=True)
 
         # Put together video and TTS audio
-        check_output(["sh", "create_final_video.sh", f"{silent_video_output_path}",
+        check_output(["sh", f"{UTILS_DIR}create_final_video.sh", f"{silent_video_output_path}",
                      f"{audio_input_path}", f"{final_video_output_path}"], stderr=STDOUT, timeout=120)
     except BaseException as err:
         print(err)

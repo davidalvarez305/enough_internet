@@ -1,6 +1,6 @@
 from functools import partial
 import json
-from multiprocess import Pool
+from multiprocess.pool import ThreadPool
 import os
 from pathlib import Path
 import shutil
@@ -50,7 +50,7 @@ def text_to_speech_videos(video):
                 shutil.rmtree(video_dir_name + "/" + dir_path)
        
 
-    with Pool(len(reddit_posts)) as p:
+    with ThreadPool(len(reddit_posts)) as p:
         print(p.starmap(create_video, [(index, post) for index, post  in enumerate(reddit_posts)]))
     
 

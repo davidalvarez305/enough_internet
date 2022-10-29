@@ -3,6 +3,7 @@ import os
 from random import randrange
 import re
 import subprocess
+import sys
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
@@ -11,7 +12,7 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 from mutagen.mp3 import MP3
 from wand.image import Image
-from constants import MUSIC_DIR, TTS_VIDEO_DIR
+from constants import MUSIC_DIR
 from ..utils.create_scrolling_video import create_scrolling_video
 from ..utils.voice import save
 from multiprocess import Pool
@@ -72,8 +73,6 @@ def create_image(comments_list, image_output_path):
 # It screenshots each comment, and stacks them vertically to form a long image.
 # It then creates a video of the length of the text-to-speech audio and creates a scrolling animation of the image.
 def create_conversation_video(conversation_id, comments):
-    print('conv: ', conversation_id)
-    print('comments: ', comments)
 
     # Create video directory
     VIDEO_DIR = comments[0]['video_directory'] + f"{conversation_id}/"
