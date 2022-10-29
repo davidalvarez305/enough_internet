@@ -1,3 +1,4 @@
+import enum
 import math
 import os
 from random import randrange
@@ -195,8 +196,11 @@ def screenshot_tts(post, video_directory):
             create_conversation_video(comments=[title_video], conversation_id=9999)
 
         # Create A Video for Each Conversation
-        with ThreadPool(len(conversations)) as p:
-            print(p.starmap(create_conversation_video, [(index, comments) for index, comments  in enumerate(conversations)]))
+        """ with ThreadPool(len(conversations)) as p:
+            print(p.starmap(create_conversation_video, [(index, comments) for index, comments  in enumerate(conversations)])) """
+
+        for index, comments in enumerate(conversations):
+            create_conversation_video(conversation_id=index, comments=comments)
 
         # Create Final Video
         files_to_join = []
