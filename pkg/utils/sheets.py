@@ -33,7 +33,7 @@ def convert_titles(spreadsheet_id):
     options = {}
 
     for tab in tabs:
-        if "Tabs" not in tab and "Competitors" not in tab:
+        if "Tabs" not in tab:
             rows = get_values(spreadsheet_id, f'{tab}!A:A')
             options[tab] = []
             for index, row in enumerate(rows):

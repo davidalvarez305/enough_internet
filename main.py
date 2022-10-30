@@ -14,14 +14,14 @@ from pkg.lib.slideshow_videos import slideshow_videos
 def main():
     load_dotenv()
     SPREADSHEET_ID = str(os.environ.get('SPREADSHEET_ID'))
-    vids = get_values(SPREADSHEET_ID, 'Tabs!A:Z')
+    vids = get_values(SPREADSHEET_ID, 'Tabs!A:D')
     data = convert_sheets_values(vids)
     title_options = convert_titles(SPREADSHEET_ID)
 
     count = 0
 
-    for index, video in enumerate(data):
-        if "weight loss" in video['series']:
+    for video in data:
+        if "slideshow" in video['type']:
             try:
                 video['body']['snippet']['title'] = select_random_title(
                     title_options, video['series'])
@@ -31,11 +31,12 @@ def main():
                 values_to_write = convert_to_write_values(data)
                 write_values(SPREADSHEET_ID, 'Tabs!C2:C', values_to_write)
             except BaseException as err:
-                print(f"Unexpected {err=}, {type(err)=}")
+                print(f"Error {err=}, {type(err)=}")
                 delete_files(SLIDESHOW_VIDEO_DIR)
 
                 continue
-        if "internet clips" in video['series'] or "laughing uncontrollably" in video['series']:
+
+        if "video" in video['type']:
             try:
                 video['body']['snippet']['title'] = select_random_title(
                     title_options, video['series'])
@@ -45,7 +46,7 @@ def main():
                 values_to_write = convert_to_write_values(data)
                 write_values(SPREADSHEET_ID, 'Tabs!C2:C', values_to_write)
             except BaseException as err:
-                print(f"Unexpected {err=}, {type(err)=}")
+                print(f"Error {err=}, {type(err)=}")
                 delete_files(COMPILATION_VIDEO_DIR)
 
                 continue

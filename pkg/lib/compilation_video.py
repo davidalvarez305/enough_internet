@@ -1,59 +1,87 @@
 import json
+import random
+import string
 import youtube_dl
 import os
 from os import listdir
 import subprocess
 from constants import COMPILATION_VIDEO_DIR
 from ..utils.make_request import make_request
-from pathlib import Path
 from ..utils.upload import upload
 from ..utils.delete_files import delete_files
-from multiprocessing import Pool
+from multiprocess.pool import ThreadPool
+
+def handle_reddit_videos(video):
+    videos = []
+
+    source_url = video['source'] + "?limit=" + str(video['limit'])
+    resp = make_request(source_url)
+    posts = json.loads(resp)
+
+    reddit_posts = posts['data']['children']
+
+    for post in reddit_posts:
+        if post['data']['secure_media'] and 'reddit_video' in post['data']['secure_media']:
+            download_link = post['data']['secure_media']['reddit_video']['fallback_url']
+            videos.append({ 'download_link': download_link })
+    
+    return videos
+
+def handle_9gag_videos(video):
+    videos = []
+
+    source_url = video['source']
+    resp = make_request(source_url)
+    posts = json.loads(resp)
+
+    api_posts = posts['data']['posts']
+
+    for video in api_posts:
+        if video['type'] == "Animated" and video['nsfw'] == 0:
+            download_link = video['url']
+            videos.append({ 'download_link':  download_link })
+
+    return videos
 
 
 def download(post):
+    file_path = COMPILATION_VIDEO_DIR + ''.join(random.choices(string.ascii_uppercase + string.digits, k=24)) + ".mp4"
     params = {
-        'outtmpl': COMPILATION_VIDEO_DIR + f"{post['video_author']}.mp4"
+        'outtmpl': file_path
     }
     with youtube_dl.YoutubeDL(params) as ydl:
         ydl.download([post['download_link']])
 
 # Compilation video downloads a list of videos from Reddit and uses FFMPEG to concatenate them on a blurred background.
 
-
 def compilation_video(video):
-    source_url = video['source'] + "?limit=" + str(video['limit'])
-    resp = make_request(source_url)
-    posts = json.loads(resp)
-
-    users = []
-
+    
     # Download All Videos
     videos = []
-    reddit_posts = posts['data']['children']
-    for post in reddit_posts:
-        if post['data']['secure_media'] and 'reddit_video' in post['data']['secure_media']:
-            users.append(post['data']['author'])
-            download_link = post['data']['secure_media']['reddit_video']['fallback_url']
-            video_author = post['data']['author']
-            videos.append({'download_link': download_link,
-                         'video_author': video_author})
+    
+    if "reddit" in video['source']:
+        reddit_videos = handle_reddit_videos(video)
+        videos += reddit_videos
+    if "9gag" in video['source']:
+        api_videos = handle_9gag_videos(video)
+        videos += api_videos
 
-    with Pool(len(videos)) as p:
+    with ThreadPool(len(videos)) as p:
         print(p.map(download, videos))
 
     # Add A Blurred Background to Every Video
     files = listdir(COMPILATION_VIDEO_DIR)
     for file in files:
-        input_file = COMPILATION_VIDEO_DIR + file
-        output_file = COMPILATION_VIDEO_DIR + "output_" + file
-        try:
-            subprocess.run(f"ffmpeg -i {input_file} -lavfi '[0:v]scale=ih*16/9:-1:force_original_aspect_ratio=decrease,boxblur=luma_radius=min(h\,w)/20:luma_power=1:chroma_radius=min(cw\,ch)/20:chroma_power=1[bg];[bg][0:v]overlay=(W-w)/2:(H-h)/2,crop=h=iw*9/16' -vb 800K {output_file}",
-                           shell=True,
-                           check=True, text=True)
-        except BaseException as err:
-            os.remove(output_file)
-            break
+        if ".mp4" in file:
+            input_file = COMPILATION_VIDEO_DIR + file
+            output_file = COMPILATION_VIDEO_DIR + "output_" + file
+            try:
+                subprocess.run(f"ffmpeg -i {input_file} -lavfi '[0:v]scale=ih*16/9:-1:force_original_aspect_ratio=decrease,boxblur=luma_radius=min(h\,w)/20:luma_power=1:chroma_radius=min(cw\,ch)/20:chroma_power=1[bg];[bg][0:v]overlay=(W-w)/2:(H-h)/2,crop=h=iw*9/16' -vb 800K {output_file}",
+                            shell=True,
+                            check=True, text=True)
+            except BaseException as err:
+                os.remove(output_file)
+                break
 
     # Create List of Videos & Concatenate Them into Final Video
     produced_files = listdir(COMPILATION_VIDEO_DIR)
@@ -74,8 +102,7 @@ def compilation_video(video):
         subprocess.run(f"ffmpeg -f concat -safe 0 -i {videos_text_file} -c:v libx265 -vtag hvc1 -vf scale=1920:1080 -crf 20 -c:a copy {vid_name}", shell=True,
                        check=True, text=True)
 
-        desc = "original sauce to the following users, in order: " + \
-            ", \n".join(users)
+        desc = video['body']['snippet']['title']
         video['body']['snippet']['description'] = desc
         upload(vid_name, video['body'])
 

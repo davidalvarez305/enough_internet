@@ -40,17 +40,17 @@ def text_to_speech_videos(video):
             video['body']['snippet']['title'] = youtube_title
 
             upload(mp4_video_path, video['body'])
-            count += 1
+            
         except BaseException as err:
             print(err)
 
             dirs = os.listdir(video_dir_name + "/")
             for dir_path in dirs:
                 shutil.rmtree(video_dir_name + "/" + dir_path)
-       
 
     with ThreadPool(len(reddit_posts)) as p:
         print(p.starmap(create_video, [(index, post) for index, post  in enumerate(reddit_posts)]))
-    
 
+    count += 1
+    
     return count
