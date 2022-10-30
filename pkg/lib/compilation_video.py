@@ -107,6 +107,5 @@ def compilation_video(video):
         upload(vid_name, video['body'])
 
     except BaseException as err:
-        print("Video upload failed: ", err)
-    finally:
         delete_files(COMPILATION_VIDEO_DIR)
+        print("Video upload failed: ", err)
