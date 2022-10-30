@@ -48,7 +48,6 @@ def main():
             except BaseException as err:
                 print(f"Error {err=}, {type(err)=}")
                 delete_files(COMPILATION_VIDEO_DIR)
-
                 continue
         else:
             try:
