@@ -11,6 +11,7 @@ from ..utils.upload import upload
 from ..utils.delete_files import delete_files
 from multiprocess.pool import ThreadPool
 
+
 def handle_reddit_videos(video):
     videos = []
 
@@ -21,11 +22,12 @@ def handle_reddit_videos(video):
     reddit_posts = posts['data']['children']
 
     for post in reddit_posts:
-        if post['data']['secure_media'] and 'reddit_video' in post['data']['secure_media']:
+        if post['data']['secure_media'] and 'reddit_video' in post['data']['secure_media'] and "nsfw" not in post['data']['thumbnail']:
             download_link = post['data']['secure_media']['reddit_video']['fallback_url']
-            videos.append({ 'download_link': download_link })
-    
+            videos.append({'download_link': download_link})
+
     return videos
+
 
 def handle_9gag_videos(video):
     videos = []
@@ -39,13 +41,15 @@ def handle_9gag_videos(video):
     for video in api_posts:
         if video['type'] == "Animated" and video['nsfw'] == 0:
             download_link = video['url']
-            videos.append({ 'download_link':  download_link })
+            videos.append({'download_link':  download_link})
 
     return videos
 
 
 def download(post):
-    file_path = COMPILATION_VIDEO_DIR + ''.join(random.choices(string.ascii_uppercase + string.digits, k=24)) + ".mp4"
+    file_path = COMPILATION_VIDEO_DIR + \
+        ''.join(random.choices(string.ascii_uppercase +
+                string.digits, k=24)) + ".mp4"
     params = {
         'outtmpl': file_path
     }
@@ -54,11 +58,12 @@ def download(post):
 
 # Compilation video downloads a list of videos from Reddit and uses FFMPEG to concatenate them on a blurred background.
 
+
 def compilation_video(video):
-    
+
     # Download All Videos
     videos = []
-    
+
     if "reddit" in video['source']:
         reddit_videos = handle_reddit_videos(video)
         videos += reddit_videos
@@ -77,8 +82,8 @@ def compilation_video(video):
             output_file = COMPILATION_VIDEO_DIR + "output_" + file
             try:
                 subprocess.run(f"ffmpeg -y -i {input_file} -lavfi '[0:v]scale=ih*16/9:-1:force_original_aspect_ratio=decrease,boxblur=luma_radius=min(h\,w)/20:luma_power=1:chroma_radius=min(cw\,ch)/20:chroma_power=1[bg];[bg][0:v]overlay=(W-w)/2:(H-h)/2,crop=h=iw*9/16' -vb 800K {output_file}",
-                            shell=True,
-                            check=True, text=True)
+                               shell=True,
+                               check=True, text=True)
             except BaseException as err:
                 os.remove(output_file)
                 continue
@@ -107,5 +112,6 @@ def compilation_video(video):
         upload(vid_name, video['body'])
 
     except BaseException as err:
-        delete_files(COMPILATION_VIDEO_DIR)
         print("Video upload failed: ", err)
+    finally:
+        delete_files(COMPILATION_VIDEO_DIR)
