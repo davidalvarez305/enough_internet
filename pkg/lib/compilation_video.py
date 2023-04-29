@@ -67,9 +67,9 @@ def compilation_video(video):
     if "reddit" in video['source']:
         reddit_videos = handle_reddit_videos(video)
         videos += reddit_videos
-    # if "9gag" in video['source']:
-        # api_videos = handle_9gag_videos(video)
-        # videos += api_videos
+    if "9gag" in video['source']:
+        api_videos = handle_9gag_videos(video)
+        videos += api_videos
 
     with ThreadPool(len(videos)) as p:
         print(p.map(download, videos))
