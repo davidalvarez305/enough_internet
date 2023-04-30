@@ -15,7 +15,6 @@ from constants import MUSIC_DIR, SLIDESHOW_VIDEO_DIR
 from ..utils.make_request import make_request
 from ..utils.delete_files import delete_files
 from ..utils.upload import upload
-from pathlib import Path
 
 def download_and_write_image(post):
     if ".jpg" in post['data']['url'] and "nsfw" not in post['data']['thumbnail']:

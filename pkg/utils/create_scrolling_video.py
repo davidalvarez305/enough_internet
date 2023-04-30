@@ -1,10 +1,6 @@
-import os
 import subprocess
-import sys
 from mutagen.mp3 import MP3
-from subprocess import STDOUT, check_output
 from wand.image import Image
-from constants import UTILS_DIR
 
 def get_image_height(image_path):
     with Image(filename=image_path) as i:

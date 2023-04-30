@@ -1,8 +1,6 @@
-from functools import partial
 import json
 from multiprocess.pool import ThreadPool
 import os
-from pathlib import Path
 import shutil
 
 from constants import TTS_VIDEO_DIR

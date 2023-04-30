@@ -1,19 +1,22 @@
+import json
 import os
-from dotenv import load_dotenv
 import google_auth_oauthlib.flow
 from oauth2client.client import OAuth2Credentials
+
+from constants import CREDENTIALS_DIR
 
 scopes = ["https://www.googleapis.com/auth/youtube.upload", "https://www.googleapis.com/auth/spreadsheets",
           "https://www.googleapis.com/auth/gmail.send", "https://www.googleapis.com/auth/cloud-platform"]
 
 
 def get_token():
-    load_dotenv()
+    env_file = open(CREDENTIALS_DIR + "env.json")
+    env = json.load(env_file) 
     # Disable OAuthlib's HTTPS verification when running locally.
     # *DO NOT* leave this option enabled in production.
     os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 
-    client_secrets_file = str(os.environ.get('SECRETS_FILE'))
+    client_secrets_file = str(env.get('SECRETS_FILE'))
 
     # Get credentials and create an API client
     flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
@@ -37,7 +40,7 @@ def get_token():
         refresh_token=flow.credentials.refresh_token,
         token_expiry=flow.credentials.expiry,
         token_uri=flow.credentials.token_uri,
-        user_agent=str(os.environ.get('USER_AGENT')),
+        user_agent=str(env.get('USER_AGENT')),
         id_token=flow.credentials.id_token,
         scopes=flow.credentials.scopes,
     )

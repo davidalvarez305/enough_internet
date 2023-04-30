@@ -1,10 +1,9 @@
-import enum
+import json
 import math
 import os
 from random import randrange
 import re
 import subprocess
-import sys
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
@@ -13,10 +12,9 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 from mutagen.mp3 import MP3
 from wand.image import Image
-from constants import MUSIC_DIR
+from constants import CREDENTIALS_DIR, MUSIC_DIR
 from ..utils.create_scrolling_video import create_scrolling_video
 from ..utils.voice import save
-from multiprocess.pool import ThreadPool
 
 
 def create_video_title(text):
@@ -126,8 +124,10 @@ def create_conversation_video(conversation_id, comments):
 
 
 def screenshot_tts(post, video_directory):
+    f = open(CREDENTIALS_DIR + "env.json")
+    env = json.load(f)
+    user_agent = str(env.get('BROWSER_AGENT'))
     options = Options()
-    user_agent = str(os.environ.get('BROWSER_AGENT'))
     options.add_argument("--headless")
     options.add_argument(f'user-agent={user_agent}')
 

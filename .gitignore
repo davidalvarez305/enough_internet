@@ -8,3 +8,4 @@
 *.jpeg
 *.txt
 __pycache__
+deploy.sh

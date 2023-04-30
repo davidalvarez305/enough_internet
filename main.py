@@ -1,7 +1,6 @@
-from genericpath import isdir
+import json
 import shutil
-from dotenv import load_dotenv
-from constants import COMPILATION_VIDEO_DIR, SLIDESHOW_VIDEO_DIR, TTS_VIDEO_DIR
+from constants import CREDENTIALS_DIR, COMPILATION_VIDEO_DIR, SLIDESHOW_VIDEO_DIR, TTS_VIDEO_DIR
 from pkg.utils.gmail import send_mail
 from pkg.lib.compilation_video import compilation_video
 from pkg.lib.text_to_speech_videos import text_to_speech_videos
@@ -12,8 +11,9 @@ from pkg.lib.slideshow_videos import slideshow_videos
 
 
 def main():
-    load_dotenv()
-    SPREADSHEET_ID = str(os.environ.get('SPREADSHEET_ID'))
+    f = open(CREDENTIALS_DIR + "env.json")
+    env = json.load(f)
+    SPREADSHEET_ID = str(env.get('SPREADSHEET_ID'))
     vids = get_values(SPREADSHEET_ID, 'Tabs!A:D')
     data = convert_sheets_values(vids)
     title_options = convert_titles(SPREADSHEET_ID)
