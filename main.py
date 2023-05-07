@@ -1,14 +1,9 @@
 import json
-import shutil
-from constants import CREDENTIALS_DIR, COMPILATION_VIDEO_DIR, SLIDESHOW_VIDEO_DIR, TTS_VIDEO_DIR
+from constants import CREDENTIALS_DIR, COMPILATION_VIDEO_DIR
 from pkg.utils.gmail import send_mail
-from pkg.lib.compilation_video import compilation_video
-from pkg.lib.text_to_speech_videos import text_to_speech_videos
-import os
-from pkg.utils.sheets import convert_sheets_values, convert_titles, convert_to_write_values, get_values, select_random_title, write_values
+from pkg.utils.compilation_video import compilation_video
+from pkg.utils.sheets import convert_sheets_values, convert_to_write_values, get_values, write_values
 from pkg.utils.delete_files import delete_files
-from pkg.lib.slideshow_videos import slideshow_videos
-
 
 def main():
     f = open(CREDENTIALS_DIR + "env.json")
@@ -16,57 +11,22 @@ def main():
     SPREADSHEET_ID = str(env.get('SPREADSHEET_ID'))
     vids = get_values(SPREADSHEET_ID, 'Tabs!A:D')
     data = convert_sheets_values(vids)
-    title_options = convert_titles(SPREADSHEET_ID)
 
     count = 0
 
     for video in data:
-        if "slideshow" in video['type']:
-            try:
-                video['body']['snippet']['title'] = select_random_title(
-                    title_options, video['series'])
-                slideshow_videos(video)
-                count += 1
+        part = int(video['count']) + 1
+        try:
+            video['body']['snippet']['title'] = "r/" + video['series'] + " Compilation - Part " + str(part)
+            compilation_video(video)
+            count += 1
 
-                values_to_write = convert_to_write_values(data)
-                write_values(SPREADSHEET_ID, 'Tabs!C2:C', values_to_write)
-            except BaseException as err:
-                print(f"Error {err=}, {type(err)=}")
-                delete_files(SLIDESHOW_VIDEO_DIR)
-
-                continue
-
-        if "video" in video['type']:
-            try:
-                video['body']['snippet']['title'] = select_random_title(
-                    title_options, video['series'])
-                compilation_video(video)
-                count += 1
-
-                values_to_write = convert_to_write_values(data)
-                write_values(SPREADSHEET_ID, 'Tabs!C2:C', values_to_write)
-            except BaseException as err:
-                print(f"Error {err=}, {type(err)=}")
-                delete_files(COMPILATION_VIDEO_DIR)
-                continue
-        else:
-            try:
-                vids_uploaded = text_to_speech_videos(video)
-                count += vids_uploaded
-
-                values_to_write = convert_to_write_values(data)
-                write_values(SPREADSHEET_ID, 'Tabs!C2:C', values_to_write)
-            except BaseException as err:
-                print(f"Error: {err}")
-
-                # Delete all created directories
-                directories = os.listdir(TTS_VIDEO_DIR)
-                for path in directories:
-                    dir_path = TTS_VIDEO_DIR + path
-                    if os.path.isdir(dir_path):
-                        shutil.rmtree(dir_path)
-
-                continue
+            values_to_write = convert_to_write_values(data)
+            write_values(SPREADSHEET_ID, 'Tabs!D2:D', values_to_write)
+        except BaseException as err:
+            print(f"Error {err=}, {type(err)=}")
+            delete_files(COMPILATION_VIDEO_DIR)
+            continue
 
     send_mail(count)
 

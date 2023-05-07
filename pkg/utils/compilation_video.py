@@ -6,11 +6,10 @@ import os
 from os import listdir
 import subprocess
 from constants import COMPILATION_VIDEO_DIR
-from ..utils.make_request import make_request
-from ..utils.upload import upload
-from ..utils.delete_files import delete_files
+from .make_request import make_request
+from .upload import upload
+from .delete_files import delete_files
 from multiprocess.pool import ThreadPool
-
 
 def handle_reddit_videos(video):
     videos = []
@@ -29,23 +28,6 @@ def handle_reddit_videos(video):
     return videos
 
 
-def handle_9gag_videos(video):
-    videos = []
-
-    source_url = video['source']
-    resp = make_request(source_url)
-    posts = json.loads(resp)
-
-    api_posts = posts['data']['posts']
-
-    for video in api_posts:
-        if video['type'] == "Animated" and video['nsfw'] == 0:
-            download_link = video['url']
-            videos.append({'download_link':  download_link})
-
-    return videos
-
-
 def download(post):
     file_path = COMPILATION_VIDEO_DIR + \
         ''.join(random.choices(string.ascii_uppercase +
@@ -58,7 +40,6 @@ def download(post):
 
 # Compilation video downloads a list of videos from Reddit and uses FFMPEG to concatenate them on a blurred background.
 
-
 def compilation_video(video):
 
     # Download All Videos
@@ -67,9 +48,6 @@ def compilation_video(video):
     if "reddit" in video['source']:
         reddit_videos = handle_reddit_videos(video)
         videos += reddit_videos
-    if "9gag" in video['source']:
-        api_videos = handle_9gag_videos(video)
-        videos += api_videos
 
     with ThreadPool(len(videos)) as p:
         print(p.map(download, videos))

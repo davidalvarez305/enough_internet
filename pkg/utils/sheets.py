@@ -1,4 +1,3 @@
-import random
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from .auth import get_auth
@@ -25,31 +24,8 @@ def convert_sheets_values(values):
             rows.append(obj)
     return rows
 
-
-def convert_titles(spreadsheet_id):
-    tabs = get_tabs(spreadsheet_id)
-
-    options = {}
-
-    for tab in tabs:
-        if "Tabs" not in tab:
-            rows = get_values(spreadsheet_id, f'{tab}!A:A')
-            options[tab] = []
-            for index, row in enumerate(rows):
-                if index > 0:
-                    options[tab] += row
-
-    return options
-
-
-def select_random_title(options, series):
-    title = random.choice(options[series])
-    return title
-
-
 def convert_to_write_values(data):
     rows = []
-
     for d in data:
         row = []
         for key, value in d.items():
@@ -57,7 +33,6 @@ def convert_to_write_values(data):
                 row.append(int(value) + 1)
         rows.append(row)
     return rows
-
 
 def write_values(spreadsheet_id, range, values):
     try:
@@ -94,23 +69,5 @@ def get_values(spreadsheet_id, range):
             return []
 
         return values
-    except HttpError as err:
-        print(err)
-
-
-def get_tabs(spreadsheet_id):
-    try:
-        credentials = get_auth()
-        service = build('sheets', 'v4', credentials=credentials)
-
-        sheets = service.spreadsheets().get(
-            spreadsheetId=spreadsheet_id).execute().get('sheets', '')
-
-        sheet_names = []
-
-        for sheet in sheets:
-            sheet_names.append(sheet['properties']['title'])
-
-        return sheet_names
     except HttpError as err:
         print(err)
