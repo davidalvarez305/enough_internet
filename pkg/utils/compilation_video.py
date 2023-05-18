@@ -87,7 +87,7 @@ def compilation_video(video):
 
         desc = video['body']['snippet']['title']
         video['body']['snippet']['description'] = desc
-        upload(vid_name, video['body'])
+        upload("/r/ " + vid_name, video['body'])
 
     except BaseException as err:
         print("Video upload failed: ", err)

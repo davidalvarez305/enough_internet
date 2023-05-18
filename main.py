@@ -17,7 +17,7 @@ def main():
     for video in data:
         part = int(video['count']) + 1
         try:
-            video['body']['snippet']['title'] = "r/" + video['series'] + " Compilation - Part " + str(part)
+            video['body']['snippet']['title'] = video['series'] + "Compilation - Part " + str(part)
             compilation_video(video)
             count += 1
 
