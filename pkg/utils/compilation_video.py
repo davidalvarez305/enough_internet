@@ -78,16 +78,18 @@ def compilation_video(video):
     with open(videos_text_file, 'w') as f:
         f.write('\n'.join(files_to_join))
 
-    vid_name = COMPILATION_VIDEO_DIR + \
-        video['body']['snippet']['title'].replace(" ", "_") + ".mp4"
+    final_video_path = COMPILATION_VIDEO_DIR + video['body']['snippet']['title'].replace(" ", "_") + ".mp4"
 
     try:
-        subprocess.run(f"ffmpeg -y -f concat -safe 0 -i {videos_text_file} -c:v libx265 -vtag hvc1 -vf scale=1920:1080 -crf 20 -c:a copy {vid_name}", shell=True,
+        subprocess.run(f"ffmpeg -y -f concat -safe 0 -i {videos_text_file} -c:v libx265 -vtag hvc1 -vf scale=1920:1080 -crf 20 -c:a copy {final_video_path}", shell=True,
                        check=True, text=True)
 
         desc = video['body']['snippet']['title']
         video['body']['snippet']['description'] = desc
-        upload("/r/ " + vid_name, video['body'])
+
+        # Prepending the /r/ becauseo otherwise it messes up the video path
+        video['body']['snippet']['title'] = f"/r/{video['body']['snippet']['title']}"
+        upload(final_video_path, video['body'])
 
     except BaseException as err:
         print("Video upload failed: ", err)
